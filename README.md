@@ -15,7 +15,7 @@ A sophisticated web-based ant simulation where you can program artificial ants u
 
 ### Prerequisites
 
-- Python 3.x (for the development server)
+- Node.js 16+ and npm
 - Modern web browser (Chrome, Firefox, Safari, Edge)
 
 ### Installation
@@ -26,12 +26,17 @@ A sophisticated web-based ant simulation where you can program artificial ants u
    cd grid-life
    ```
 
-2. Start the development server:
+2. Install dependencies:
    ```bash
-   python server.py
+   npm install
    ```
 
-3. Open your browser and navigate to `http://localhost:8000`
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open your browser and navigate to `http://localhost:3000` (opens automatically)
 
 ### Basic Usage
 
@@ -122,30 +127,34 @@ grid-life/
 ├── src/
 │   ├── classes/          # Core simulation classes
 │   ├── types/            # TypeScript type definitions
-│   ├── utils/            # Utility functions
+│   ├── styles/           # CSS stylesheets
 │   └── main.ts           # Application entry point
 ├── docs/                 # Documentation
-├── dist/                 # Compiled JavaScript
-├── styles/               # CSS stylesheets
+├── dist/                 # Production build output
 ├── index.html            # Main HTML file
-└── server.py             # Development server
+├── vite.config.ts        # Vite configuration
+├── tsconfig.json         # TypeScript configuration
+└── package.json          # Dependencies and scripts
 ```
 
 ## Development
 
-### Building
+### Available Scripts
 
-The project uses TypeScript with ES2020 modules:
+The project uses Vite for fast development and TypeScript compilation:
 
 ```bash
-# Install TypeScript (if not already installed)
-npm install -g typescript
+# Start development server with hot reload
+npm run dev
 
-# Compile TypeScript
-tsc
+# Build for production
+npm run build
 
-# Or watch for changes
-tsc --watch
+# Preview production build locally
+npm run preview
+
+# Type check without emitting files
+npm run type-check
 ```
 
 ### Project Structure
@@ -162,6 +171,7 @@ tsc --watch
 3. **Rule Engine**: JSON-based programming language with variable references
 4. **Rendering Pipeline**: Efficient canvas drawing with selective updates
 5. **Event System**: Comprehensive input handling for mouse and keyboard
+6. **Development Stack**: Vite for fast builds, TypeScript for type safety, ES modules for modern JavaScript
 
 ## Advanced Examples
 
@@ -204,6 +214,7 @@ tsc --watch
 - **Viewport Culling**: Only renders visible cells and ants
 - **Optimized Rendering**: Selective canvas updates for smooth performance
 - **Rule Caching**: Compiled rule evaluation for fast execution
+- **Fast Development**: Vite provides instant hot module replacement and fast builds
 
 ## Contributing
 

@@ -39,7 +39,6 @@ A TypeScript webapp featuring an infinite grid canvas where users can place and 
 ### File Structure
 ```
 ├── src/
-│   ├── index.html
 │   ├── main.ts
 │   ├── classes/
 │   │   ├── Grid.ts
@@ -51,8 +50,13 @@ A TypeScript webapp featuring an infinite grid canvas where users can place and 
 │   │   └── index.ts
 │   └── styles/
 │       └── main.css
-├── package.json
+├── docs/
+│   └── ant-logic-language.md
+├── index.html
+├── vite.config.ts
 ├── tsconfig.json
+├── tsconfig.build.json
+├── package.json
 └── project-plan.md
 ```
 
@@ -118,9 +122,15 @@ interface GridState {
 - Ready for testing and usage
 
 ### Usage Instructions
-1. Compile TypeScript: `npm run build`
-2. Start server: `python3 serve.py`
-3. Open browser to `http://localhost:8000`
+1. Install dependencies: `npm install`
+2. Start development server: `npm run dev`
+3. Browser opens automatically to `http://localhost:3000`
+
+### Development Commands
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run type-check` - TypeScript type checking
 
 ### Keyboard Shortcuts
 - **Space**: Play/Pause simulation
