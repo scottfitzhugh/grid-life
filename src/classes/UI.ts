@@ -102,6 +102,7 @@ export class UI {
 						<button class="preset-btn" data-preset="mathWave">📊 Math Wave</button>
 						<button class="preset-btn" data-preset="averager">⚖️ Color Averager</button>
 						<button class="preset-btn" data-preset="amplifier">🔆 Brightness Amplifier</button>
+						<button class="preset-btn" data-preset="spawner">🐣 Ant Spawner</button>
 					</div>
 				</div>
 				<div class="rules-help">
@@ -278,7 +279,8 @@ export class UI {
 			'gradient': 'Gradient Painter',
 			'mathWave': 'Math Wave',
 			'averager': 'Color Averager',
-			'amplifier': 'Brightness Amplifier'
+			'amplifier': 'Brightness Amplifier',
+			'spawner': 'Ant Spawner'
 		};
 		return names[presetName] || presetName;
 	}
@@ -533,6 +535,50 @@ export class UI {
 						move: true
 					}
 				}
+			],
+			spawner: [
+				{
+					condition: {
+						cellState: { r: 240, g: 240, b: 240 }
+					},
+					action: {
+						setCellState: { r: 100, g: 200, b: 100 },
+						spawn: {
+							direction: "right",
+							antState: {
+								r: "ant.g",
+								g: "ant.b", 
+								b: "ant.r"
+							}
+						},
+						turn: "left",
+						move: true
+					}
+				},
+				{
+					condition: {
+						antState: { r: { value: 255, tolerance: 50 } }
+					},
+					action: {
+						spawn: {
+							direction: "up",
+							antState: {
+								r: 0,
+								g: 255,
+								b: 255
+							}
+						},
+						turn: "reverse",
+						move: true
+					}
+				},
+				{
+					action: {
+						setCellState: { r: "ant.r", g: "ant.g", b: "ant.b" },
+						turn: "right",
+						move: true
+					}
+				}
 			]
 		};
 	}
@@ -681,6 +727,27 @@ export class UI {
 						</div>
 						<div class="action-group">
 							<label><input type="checkbox" class="action-move"> Move forward</label>
+						</div>
+						<div class="action-group">
+							<label><input type="checkbox" class="action-spawn"> Spawn new ant</label>
+							<div class="spawn-inputs hidden">
+								<label>Direction:</label>
+								<select class="spawn-direction">
+									<option value="">Select direction</option>
+									<option value="up">Up</option>
+									<option value="down">Down</option>
+									<option value="left">Left</option>
+									<option value="right">Right</option>
+									<option value="up-left">Up-Left</option>
+									<option value="up-right">Up-Right</option>
+									<option value="down-left">Down-Left</option>
+									<option value="down-right">Down-Right</option>
+								</select>
+								<label>Spawned ant color (optional):</label>
+								<input type="text" placeholder="Red (0-255 or expression)" class="spawn-r">
+								<input type="text" placeholder="Green (0-255 or expression)" class="spawn-g">
+								<input type="text" placeholder="Blue (0-255 or expression)" class="spawn-b">
+							</div>
 						</div>
 					</div>
 				</div>
@@ -895,7 +962,7 @@ export class UI {
 		const parent = checkbox.closest('.action-group');
 		if (!parent) return;
 
-		const inputs = parent.querySelector('.setCellState-inputs, .setAntState-inputs') as HTMLElement;
+		const inputs = parent.querySelector('.setCellState-inputs, .setAntState-inputs, .spawn-inputs') as HTMLElement;
 		if (inputs) {
 			if (checkbox.checked) {
 				inputs.classList.remove('hidden');
@@ -1129,6 +1196,36 @@ export class UI {
 				moveCheckbox.checked = true;
 			}
 		}
+
+		// Set spawn action
+		if (actionData.spawn) {
+			const spawnCheckbox = ruleDiv.querySelector('.action-spawn') as HTMLInputElement;
+			if (spawnCheckbox) {
+				spawnCheckbox.checked = true;
+				this.toggleActionInputs(spawnCheckbox);
+
+				const spawnDirection = ruleDiv.querySelector('.spawn-direction') as HTMLSelectElement;
+				if (spawnDirection && actionData.spawn.direction) {
+					spawnDirection.value = actionData.spawn.direction;
+				}
+
+				if (actionData.spawn.antState) {
+					const spawnR = ruleDiv.querySelector('.spawn-r') as HTMLInputElement;
+					const spawnG = ruleDiv.querySelector('.spawn-g') as HTMLInputElement;
+					const spawnB = ruleDiv.querySelector('.spawn-b') as HTMLInputElement;
+
+					if (spawnR && actionData.spawn.antState.r !== undefined) {
+						spawnR.value = this.formatValue(actionData.spawn.antState.r);
+					}
+					if (spawnG && actionData.spawn.antState.g !== undefined) {
+						spawnG.value = this.formatValue(actionData.spawn.antState.g);
+					}
+					if (spawnB && actionData.spawn.antState.b !== undefined) {
+						spawnB.value = this.formatValue(actionData.spawn.antState.b);
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -1214,6 +1311,25 @@ export class UI {
 		const moveCheckbox = ruleDiv.querySelector('.action-move') as HTMLInputElement;
 		if (moveCheckbox && moveCheckbox.checked) {
 			rule.action.move = true;
+		}
+
+		const spawnCheckbox = ruleDiv.querySelector('.action-spawn') as HTMLInputElement;
+		if (spawnCheckbox && spawnCheckbox.checked) {
+			const spawnDirection = (ruleDiv.querySelector('.spawn-direction') as HTMLSelectElement)?.value;
+			if (spawnDirection) {
+				rule.action.spawn = { direction: spawnDirection };
+
+				const spawnR = (ruleDiv.querySelector('.spawn-r') as HTMLInputElement)?.value;
+				const spawnG = (ruleDiv.querySelector('.spawn-g') as HTMLInputElement)?.value;
+				const spawnB = (ruleDiv.querySelector('.spawn-b') as HTMLInputElement)?.value;
+
+				if (spawnR || spawnG || spawnB) {
+					rule.action.spawn.antState = {};
+					if (spawnR) rule.action.spawn.antState.r = this.parseValue(spawnR);
+					if (spawnG) rule.action.spawn.antState.g = this.parseValue(spawnG);
+					if (spawnB) rule.action.spawn.antState.b = this.parseValue(spawnB);
+				}
+			}
 		}
 
 		return rule;

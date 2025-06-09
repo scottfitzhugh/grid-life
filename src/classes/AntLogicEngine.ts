@@ -12,6 +12,9 @@ import {
 } from '../types/index.js';
 import { Grid } from './Grid.js';
 
+// Callback type for spawning new ants
+export type SpawnCallback = (x: number, y: number, state: Partial<AntState>) => void;
+
 /**
  * Enhanced Ant Logic Engine for parsing and executing ant behavior rules
  * Supports extended variable references and OR/AND condition groups
@@ -20,7 +23,7 @@ export class AntLogicEngine {
 	/**
 	 * Execute ant behavior based on rules
 	 */
-	public static executeRules(ant: AntState, rules: AntRule[], grid: Grid): void {
+	public static executeRules(ant: AntState, rules: AntRule[], grid: Grid, spawnCallback?: SpawnCallback): void {
 		const context = this.buildVariableContext(ant, grid);
 
 		for (const rule of rules) {
@@ -28,7 +31,7 @@ export class AntLogicEngine {
 			const shouldExecute = !rule.condition || this.evaluateCondition(rule.condition, context);
 			
 			if (shouldExecute) {
-				this.executeAction(rule.action, ant, grid, context);
+				this.executeAction(rule.action, ant, grid, context, spawnCallback);
 				break; // Execute only first matching rule
 			}
 		}
@@ -376,7 +379,8 @@ export class AntLogicEngine {
 		action: AntRule['action'], 
 		ant: AntState, 
 		grid: Grid, 
-		context: VariableContext
+		context: VariableContext,
+		spawnCallback?: SpawnCallback
 	): void {
 		// Set ant state
 		if (action.setAntState) {
@@ -407,6 +411,11 @@ export class AntLogicEngine {
 		// Move ant
 		if (action.move) {
 			this.moveAnt(ant);
+		}
+
+		// Spawn new ant
+		if (action.spawn && spawnCallback) {
+			this.executeSpawn(action.spawn, ant, context, spawnCallback);
 		}
 	}
 
@@ -504,6 +513,71 @@ export class AntLogicEngine {
 				ant.x++;
 				break;
 		}
+	}
+
+	/**
+	 * Execute spawn action to create a new ant in the specified direction
+	 */
+	private static executeSpawn(
+		spawnAction: NonNullable<AntRule['action']['spawn']>,
+		parentAnt: AntState,
+		context: VariableContext,
+		spawnCallback: SpawnCallback
+	): void {
+		// Calculate spawn position based on direction
+		const { direction } = spawnAction;
+		let spawnX = parentAnt.x;
+		let spawnY = parentAnt.y;
+
+		// Apply direction offset
+		switch (direction) {
+			case 'up':
+				spawnY--;
+				break;
+			case 'down':
+				spawnY++;
+				break;
+			case 'left':
+				spawnX--;
+				break;
+			case 'right':
+				spawnX++;
+				break;
+			case 'up-left':
+				spawnX--;
+				spawnY--;
+				break;
+			case 'up-right':
+				spawnX++;
+				spawnY--;
+				break;
+			case 'down-left':
+				spawnX--;
+				spawnY++;
+				break;
+			case 'down-right':
+				spawnX++;
+				spawnY++;
+				break;
+		}
+
+		// Prepare initial state for spawned ant
+		const defaultState: Partial<AntState> = {
+			r: parentAnt.r,
+			g: parentAnt.g,
+			b: parentAnt.b,
+			direction: parentAnt.direction,
+			rules: parentAnt.rules // Inherit parent's rules
+		};
+
+		// Override with specified ant state if provided
+		if (spawnAction.antState) {
+			const resolvedAntState = this.resolveVariableReferences(spawnAction.antState, context);
+			Object.assign(defaultState, resolvedAntState);
+		}
+
+		// Call spawn callback to create the new ant
+		spawnCallback(spawnX, spawnY, defaultState);
 	}
 
 	/**

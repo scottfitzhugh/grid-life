@@ -691,11 +691,47 @@ body {
 }
 
 .setCellState-inputs,
-.setAntState-inputs {
+.setAntState-inputs,
+.spawn-inputs {
 	display: flex;
 	gap: 3px;
 	flex-wrap: wrap;
 	margin-top: 3px;
+}
+
+.spawn-inputs {
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+.spawn-inputs label {
+	margin-bottom: 2px;
+	margin-top: 4px;
+	font-size: 9px;
+}
+
+.spawn-direction,
+.spawn-r,
+.spawn-g,
+.spawn-b {
+	padding: 3px 4px;
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	color: #333;
+	margin-right: 3px;
+	margin-bottom: 3px;
+	font-size: 10px;
+}
+
+.spawn-direction {
+	width: 120px;
+}
+
+.spawn-r,
+.spawn-g,
+.spawn-b {
+	width: 80px;
 }
 
 .add-btn {

@@ -86,9 +86,9 @@ export class Ant {
 	/**
 	 * Execute ant behavior based on rules using enhanced logic engine
 	 */
-	public step(grid: Grid): void {
+	public step(grid: Grid, spawnCallback?: (x: number, y: number, state: Partial<AntState>) => void): void {
 		const rules = this.getRules();
-		AntLogicEngine.executeRules(this.state, rules, grid);
+		AntLogicEngine.executeRules(this.state, rules, grid, spawnCallback);
 	}
 
 	/**

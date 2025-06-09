@@ -1,4 +1,4 @@
-import { SimulationSettings } from '../types/index.js';
+import { SimulationSettings, AntState } from '../types/index.js';
 import { Grid } from './Grid.js';
 import { Ant } from './Ant.js';
 
@@ -100,9 +100,21 @@ export class Simulation {
 	 * Execute one simulation step
 	 */
 	public step(): void {
+		// Create spawn callback that adds new ants to the simulation
+		const spawnCallback = (x: number, y: number, state: Partial<AntState>) => {
+			const newAnt = new Ant(x, y);
+			
+			// Apply the provided state to the new ant
+			if (state) {
+				newAnt.setState(state);
+			}
+			
+			this.addAnt(newAnt);
+		};
+
 		// Execute each ant's behavior
 		for (const ant of this.ants.values()) {
-			ant.step(this.grid);
+			ant.step(this.grid, spawnCallback);
 		}
 
 		// Notify observers

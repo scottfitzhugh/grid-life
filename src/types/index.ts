@@ -69,6 +69,10 @@ export interface AntRule {
 		setCellState?: { [key: string]: ConditionValue };
 		turn?: Turn;
 		move?: boolean;
+		spawn?: {
+			direction: SurroundingDirection; // Which direction to spawn in
+			antState?: { [key: string]: ConditionValue }; // Initial state of spawned ant (optional)
+		};
 	};
 }
 

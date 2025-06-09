@@ -21,7 +21,7 @@ A TypeScript webapp featuring an infinite grid canvas where users can place and 
    - **Enhanced Variable References**: Access ant state, current cell, and surrounding cells
    - **OR/AND Condition Groups**: Complex conditional logic with nested support
    - **Optimized Execution Engine**: Dedicated AntLogicEngine class for performance
-   - Actions: modify ant state/direction, change cell state, move forward
+   - Actions: modify ant state/direction, change cell state, move forward, spawn new ants
    - Configurable simulation speed
 
 4. **UI Components**
@@ -118,6 +118,10 @@ interface AntRule {
 		setCellState?: { [key: string]: ConditionValue };
 		turn?: Turn;
 		move?: boolean;
+		spawn?: {
+			direction: SurroundingDirection; // Which direction to spawn in
+			antState?: { [key: string]: ConditionValue }; // Initial state of spawned ant (optional)
+		};
 	};
 }
 ```
@@ -276,6 +280,30 @@ interface GridState {
 ]
 ```
 
+#### Ant Spawning Rule
+```json
+[
+  {
+    "condition": {
+      "cellState": { "r": 240, "g": 240, "b": 240 }
+    },
+    "action": {
+      "setCellState": { "r": 100, "g": 200, "b": 100 },
+      "spawn": {
+        "direction": "right",
+        "antState": {
+          "r": "ant.g",
+          "g": "ant.b", 
+          "b": "ant.r"
+        }
+      },
+      "turn": "left",
+      "move": true
+    }
+  }
+]
+```
+
 #### Cell Color Mixing
 ```json
 [
@@ -340,6 +368,14 @@ interface GridState {
 - **Examples**: `"ant.r + 10"`, `"(ant.r + cell.r) / 2"`, `"ant.g * 2 % 255"`
 
 ### Preset System
-- **10 creative presets** with emojis and color-coded buttons
-- **Feature demonstrations**: Each preset showcases different capabilities
+- **11 creative presets** with emojis and color-coded buttons
+- **Feature demonstrations**: Each preset showcases different capabilities including spawning
 - **Professional UI**: Grid layout with hover animations and gradients
+
+### Ant Spawning System
+- **Spawn Action**: New action type allows ants to create offspring
+- **Directional Spawning**: Spawn in any of 8 surrounding directions
+- **State Inheritance**: Spawned ants inherit parent's rules by default
+- **Custom State**: Override spawned ant's initial color and properties
+- **Variable Support**: Use mathematical expressions for spawned ant properties
+- **Visual Builder**: GUI support for configuring spawn actions
