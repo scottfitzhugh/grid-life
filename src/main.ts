@@ -107,6 +107,42 @@ class GridLifeApp {
 		this.simulation.setOnStep(() => {
 			// Render is handled by the animation loop
 		});
+		
+		// Add test ants for debugging variable-based color updates
+		this.addTestAnts();
+	}
+	
+	/**
+	 * Add test ants for debugging variable-based color updates
+	 */
+	private addTestAnts(): void {
+		// Test ant 1: Red starts, should cycle through colors
+		const testAnt1 = new Ant(0, 0, "test-ant-1");
+		testAnt1.setState({ r: 255, g: 0, b: 0 });
+		testAnt1.setRules(JSON.stringify([
+			{
+				action: {
+					setCellState: { r: "ant.r", g: "ant.g", b: "ant.b" },
+					setAntState: { r: "ant.g", g: "ant.b", b: "ant.r" },
+					move: true
+				}
+			}
+		], null, 2));
+		this.simulation.addAnt(testAnt1);
+		
+		// Test ant 2: Green starts, should cycle through different colors
+		const testAnt2 = new Ant(2, 2, "test-ant-2");
+		testAnt2.setState({ r: 0, g: 255, b: 128 });
+		testAnt2.setRules(JSON.stringify([
+			{
+				action: {
+					setCellState: { r: "ant.r", g: "ant.g", b: "ant.b" },
+					setAntState: { r: "ant.g", g: "ant.b", b: "ant.r" },
+					move: true
+				}
+			}
+		], null, 2));
+		this.simulation.addAnt(testAnt2);
 	}
 
 	/**

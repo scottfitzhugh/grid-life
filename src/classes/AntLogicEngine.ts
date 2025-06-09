@@ -24,7 +24,10 @@ export class AntLogicEngine {
 		const context = this.buildVariableContext(ant, grid);
 
 		for (const rule of rules) {
-			if (this.evaluateCondition(rule.condition, context)) {
+			// Rules without conditions always execute
+			const shouldExecute = !rule.condition || this.evaluateCondition(rule.condition, context);
+			
+			if (shouldExecute) {
 				this.executeAction(rule.action, ant, grid, context);
 				break; // Execute only first matching rule
 			}
@@ -218,7 +221,16 @@ export class AntLogicEngine {
 		// Set cell state
 		if (action.setCellState) {
 			const resolvedCellState = this.resolveVariableReferences(action.setCellState, context);
-			grid.setCellState(ant.x, ant.y, resolvedCellState as CellState);
+			
+			// Ensure we have a complete cell state with all RGB values
+			const currentCell = grid.getCellState(ant.x, ant.y);
+			const completeCellState: CellState = {
+				r: resolvedCellState.r !== undefined ? resolvedCellState.r : currentCell.r,
+				g: resolvedCellState.g !== undefined ? resolvedCellState.g : currentCell.g,
+				b: resolvedCellState.b !== undefined ? resolvedCellState.b : currentCell.b
+			};
+			
+			grid.setCellState(ant.x, ant.y, completeCellState);
 		}
 
 		// Move ant
@@ -319,7 +331,7 @@ export class AntLogicEngine {
 	 */
 	public static validateRule(rule: any): boolean {
 		if (!rule || typeof rule !== 'object') return false;
-		if (!rule.condition || !rule.action) return false;
+		if (!rule.action) return false; // Action is required, condition is optional
 		
 		// Additional validation can be added here
 		return true;

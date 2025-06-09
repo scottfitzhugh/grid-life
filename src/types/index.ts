@@ -63,7 +63,7 @@ export interface CameraState {
 
 // Enhanced rule structure
 export interface AntRule {
-	condition: EnhancedCondition;
+	condition?: EnhancedCondition; // Optional - rules without conditions always execute
 	action: {
 		setAntState?: { [key: string]: ConditionValue };
 		setCellState?: { [key: string]: ConditionValue };

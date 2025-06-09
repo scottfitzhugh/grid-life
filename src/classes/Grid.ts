@@ -26,7 +26,27 @@ export class Grid {
 	 */
 	public setCellState(x: number, y: number, state: CellState): void {
 		const key = this.getCellKey(x, y);
-		this.cells.set(key, { ...state });
+		
+		// Validate and clamp RGB values to ensure they are within bounds
+		const validatedState: CellState = {
+			r: Math.max(0, Math.min(255, Math.floor(Number(state.r) || 0))),
+			g: Math.max(0, Math.min(255, Math.floor(Number(state.g) || 0))),
+			b: Math.max(0, Math.min(255, Math.floor(Number(state.b) || 0)))
+		};
+		
+		// Debug: Log cell state changes to verify they're happening
+		const oldState = this.cells.get(key) || this.defaultCellColor;
+		console.log(`🎨 Cell (${x},${y}) color change:`);
+		console.log(`  Before: rgb(${oldState.r}, ${oldState.g}, ${oldState.b})`);
+		console.log(`  Input:  rgb(${state.r}, ${state.g}, ${state.b}) [types: ${typeof state.r}, ${typeof state.g}, ${typeof state.b}]`);
+		console.log(`  After:  rgb(${validatedState.r}, ${validatedState.g}, ${validatedState.b})`);
+		console.log(`  CSS:    ${this.rgbToString(validatedState)}`);
+		
+		this.cells.set(key, validatedState);
+		
+		// Verify the state was actually saved
+		const retrievedState = this.cells.get(key);
+		console.log(`  Stored: rgb(${retrievedState?.r}, ${retrievedState?.g}, ${retrievedState?.b})`);
 	}
 
 	/**
@@ -80,14 +100,28 @@ export class Grid {
 		// Apply camera transform
 		camera.applyTransform(ctx);
 
+		// Track non-default cells for debugging
+		let nonDefaultCells = 0;
+
 		// Draw cells
 		for (let x = startX; x <= endX; x++) {
 			for (let y = startY; y <= endY; y++) {
 				const cellState = this.getCellState(x, y);
 				const worldPos = this.gridToWorld(x, y);
 
+				// Check if this cell has been modified from default
+				const isDefault = cellState.r === this.defaultCellColor.r && 
+				                 cellState.g === this.defaultCellColor.g && 
+				                 cellState.b === this.defaultCellColor.b;
+
+				if (!isDefault) {
+					nonDefaultCells++;
+					console.log(`🖌️ Rendering modified cell (${x},${y}): rgb(${cellState.r}, ${cellState.g}, ${cellState.b})`);
+				}
+
 				// Draw cell background
-				ctx.fillStyle = this.rgbToString(cellState);
+				const fillColor = this.rgbToString(cellState);
+				ctx.fillStyle = fillColor;
 				ctx.fillRect(
 					worldPos.x - this.cellSize / 2,
 					worldPos.y - this.cellSize / 2,
@@ -105,6 +139,10 @@ export class Grid {
 					this.cellSize
 				);
 			}
+		}
+
+		if (nonDefaultCells > 0) {
+			console.log(`🎨 Rendered ${nonDefaultCells} modified cells`);
 		}
 	}
 

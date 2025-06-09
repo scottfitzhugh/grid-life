@@ -17,8 +17,8 @@ export class Ant {
 			y,
 			direction: 'up',
 			r: 255,
-			g: 0,
-			b: 0,
+			g: 100,
+			b: 50,
 			rules: JSON.stringify([
 				{
 					condition: {
@@ -26,6 +26,7 @@ export class Ant {
 					},
 					action: {
 						setCellState: { r: "ant.r", g: "ant.g", b: "ant.b" },
+						setAntState: { r: "ant.g", g: "ant.b", b: "ant.r" },
 						turn: "right",
 						move: true
 					}
