@@ -249,6 +249,19 @@ interface GridState {
 - `npm run preview` - Preview production build
 - `npm run type-check` - TypeScript type checking
 
+### CI/CD Setup
+- **GitHub Actions**: Automated build and deployment workflows
+- **Build Workflow**: Runs on every push/PR, tests on Node.js 18.x and 20.x
+- **Deploy Workflow**: Automatically deploys to GitHub Pages on main branch push
+- **Artifacts**: Build outputs are stored for 30 days for download
+
+#### GitHub Pages Setup
+To enable GitHub Pages deployment:
+1. Go to repository Settings → Pages
+2. Set Source to "GitHub Actions"
+3. Push to main branch to trigger deployment
+4. Access your live app at `https://username.github.io/grid-life`
+
 ### Keyboard Shortcuts
 - **Space**: Play/Pause simulation
 - **Ctrl+S**: Single step simulation
