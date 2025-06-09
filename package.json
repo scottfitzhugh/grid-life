@@ -1,0 +1,17 @@
+{
+	"name": "grid-life",
+	"version": "1.0.0",
+	"description": "Ant simulation webapp with infinite grid",
+	"main": "dist/main.js",
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"serve": "python3 -m http.server 8000"
+	},
+	"devDependencies": {
+		"typescript": "^5.0.0"
+	},
+	"keywords": ["simulation", "ants", "grid", "canvas", "typescript"],
+	"author": "",
+	"license": "MIT"
+} 
