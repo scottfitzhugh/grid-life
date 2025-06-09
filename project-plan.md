@@ -16,9 +16,11 @@ A TypeScript webapp featuring an infinite grid canvas where users can place and 
    - Ant state: direction (up/down/left/right) + RGB color (3 numbers 0-255)
    - Click ant to select and show rules editor
 
-3. **Rules Engine**
-   - JSON-based rules for ant behavior
-   - Ants can read their state and surrounding cell states
+3. **Enhanced Rules Engine**
+   - JSON-based rules for ant behavior with advanced features
+   - **Enhanced Variable References**: Access ant state, current cell, and surrounding cells
+   - **OR/AND Condition Groups**: Complex conditional logic with nested support
+   - **Optimized Execution Engine**: Dedicated AntLogicEngine class for performance
    - Actions: modify ant state/direction, change cell state, move forward
    - Configurable simulation speed
 
@@ -32,6 +34,7 @@ A TypeScript webapp featuring an infinite grid canvas where users can place and 
 ### Core Classes
 - `Grid`: Manages infinite grid state and rendering
 - `Ant`: Represents individual ants with state and rules
+- `AntLogicEngine`: Enhanced rule parsing and execution engine (NEW)
 - `Simulation`: Handles game loop and rule execution
 - `Camera`: Manages viewport, zoom, and pan
 - `UI`: Handles user interface and controls
@@ -43,15 +46,16 @@ A TypeScript webapp featuring an infinite grid canvas where users can place and 
 │   ├── classes/
 │   │   ├── Grid.ts
 │   │   ├── Ant.ts
+│   │   ├── AntLogicEngine.ts (NEW - Enhanced rule processor)
 │   │   ├── Simulation.ts
 │   │   ├── Camera.ts
 │   │   └── UI.ts
 │   ├── types/
-│   │   └── index.ts
+│   │   └── index.ts (Enhanced with new condition types)
 │   └── styles/
 │       └── main.css
 ├── docs/
-│   └── ant-logic-language.md
+│   └── ant-logic-language.md (Updated with enhanced features)
 ├── index.html
 ├── vite.config.ts
 ├── tsconfig.json
@@ -60,7 +64,7 @@ A TypeScript webapp featuring an infinite grid canvas where users can place and 
 └── project-plan.md
 ```
 
-### Data Structures
+### Enhanced Data Structures
 
 #### Ant State
 ```typescript
@@ -85,7 +89,100 @@ interface CellState {
 }
 ```
 
-#### Grid State
+#### Enhanced Rule Structure
+```typescript
+// Enhanced condition system supporting OR/AND groups
+interface BaseCondition {
+	antState?: { [key: string]: ConditionValue };
+	cellState?: { [key: string]: ConditionValue };
+	surroundingCells?: { [key: string]: { [key: string]: ConditionValue } };
+}
+
+interface ConditionGroup {
+	or?: BaseCondition[]; // Any condition in array must match
+	and?: BaseCondition[]; // All conditions in array must match
+}
+
+type EnhancedCondition = BaseCondition | ConditionGroup;
+
+interface AntRule {
+	condition: EnhancedCondition;
+	action: {
+		setAntState?: { [key: string]: ConditionValue };
+		setCellState?: { [key: string]: ConditionValue };
+		turn?: Turn;
+		move?: boolean;
+	};
+}
+```
+
+#### Variable Context
+```typescript
+interface VariableContext {
+	ant: AntState;
+	cell: CellState;
+	surrounding: { [key: string]: CellState };
+}
+```
+
+### Enhanced Rule System Features
+
+#### Variable References
+1. **Ant Variables**: `ant.r`, `ant.g`, `ant.b`, `ant.direction`
+2. **Current Cell Variables**: `cell.r`, `cell.g`, `cell.b`
+3. **Surrounding Cell Variables**: 
+   - Cardinal: `up.r`, `down.g`, `left.b`, `right.r`
+   - Diagonal: `up-left.g`, `up-right.b`, `down-left.r`, `down-right.g`
+
+#### Condition Groups
+1. **OR Groups**: Execute if ANY condition matches
+   ```json
+   {
+     "condition": {
+       "or": [
+         { "cellState": { "r": 255 } },
+         { "cellState": { "g": 255 } }
+       ]
+     }
+   }
+   ```
+
+2. **AND Groups**: Execute if ALL conditions match
+   ```json
+   {
+     "condition": {
+       "and": [
+         { "antState": { "direction": "up" } },
+         { "cellState": { "r": 240, "g": 240, "b": 240 } }
+       ]
+     }
+   }
+   ```
+
+3. **Nested Groups**: Complex logic combinations
+   ```json
+   {
+     "condition": {
+       "and": [
+         { "antState": { "direction": "up" } },
+         {
+           "or": [
+             { "cellState": { "r": 255 } },
+             { "surroundingCells": { "up": { "r": 255 } } }
+           ]
+         }
+       ]
+     }
+   }
+   ```
+
+#### Performance Optimizations
+- **Variable Context Caching**: Build context once per ant step
+- **Short-Circuit Evaluation**: OR stops at first match, AND stops at first failure
+- **Optimized Variable Resolution**: Direct property access with validation
+- **Rule Validation**: Parse and validate rules with helpful error messages
+
+### Grid State
 ```typescript
 interface GridState {
 	cells: Map<string, CellState>; // key: "x,y"
@@ -106,20 +203,30 @@ interface GridState {
 - [x] Ant selection system
 - [x] Rules editor UI
 
-### Phase 3: Simulation Engine
-- [x] Rule parsing and execution
-- [x] Simulation loop
+### Phase 3: Enhanced Simulation Engine
+- [x] Enhanced rule parsing and execution
+- [x] Variable reference system (ant, cell, surrounding)
+- [x] OR/AND condition groups
+- [x] Optimized AntLogicEngine class
+- [x] Simulation loop with enhanced rules
 - [x] Speed controls
 
 ### Phase 4: Polish
 - [x] UI improvements
 - [x] Performance optimizations
-- [x] Error handling
+- [x] Enhanced error handling
+- [x] Updated documentation
 
 ## Current Status
-- ✅ **COMPLETED**: Core implementation finished
+- ✅ **COMPLETED**: Enhanced implementation finished
+- ✅ **NEW**: Enhanced ant logic system with variable references and condition groups
+- ✅ **NEW**: Optimized AntLogicEngine for better performance
+- ✅ **NEW**: Comprehensive variable system (ant, cell, surrounding cells)
+- ✅ **NEW**: OR/AND condition groups with nesting support
 - All major features implemented and working
-- Ready for testing and usage
+- Enhanced rule system provides powerful new capabilities
+- Backward compatible with existing rule formats
+- Ready for advanced testing and complex ant behaviors
 
 ### Usage Instructions
 1. Install dependencies: `npm install`
@@ -140,4 +247,70 @@ interface GridState {
 ### Mouse Controls
 - **Left Click**: Place ant or select existing ant
 - **Right Drag**: Pan the view
-- **Mouse Wheel**: Zoom in/out 
+- **Mouse Wheel**: Zoom in/out
+
+### Enhanced Rule Examples
+
+#### Basic Enhanced Rule
+```json
+[
+  {
+    "condition": {
+      "and": [
+        { "cellState": { "r": 240, "g": 240, "b": 240 } },
+        { "antState": { "direction": "up" } }
+      ]
+    },
+    "action": {
+      "setCellState": { "r": "ant.r", "g": "ant.g", "b": "ant.b" },
+      "turn": "right",
+      "move": true
+    }
+  }
+]
+```
+
+#### Cell Color Mixing
+```json
+[
+  {
+    "condition": {
+      "cellState": { "r": 240, "g": 240, "b": 240 }
+    },
+    "action": {
+      "setCellState": { 
+        "r": "ant.r", 
+        "g": "up.g", 
+        "b": "left.b" 
+      },
+      "move": true
+    }
+  }
+]
+```
+
+#### Complex Pattern Detection
+```json
+[
+  {
+    "condition": {
+      "or": [
+        {
+          "and": [
+            { "cellState": { "r": "up.r" } },
+            { "cellState": { "g": "down.g" } }
+          ]
+        },
+        {
+          "antState": { "r": { "value": "cell.r", "tolerance": 50 } }
+        }
+      ]
+    },
+    "action": {
+      "setAntState": { "r": "cell.g", "g": "cell.b", "b": "cell.r" },
+      "turn": "reverse",
+      "move": true
+    }
+  }
+]
+``` 

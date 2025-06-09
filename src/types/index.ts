@@ -4,15 +4,30 @@
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
 export type Turn = 'left' | 'right' | 'reverse';
+export type SurroundingDirection = 'up' | 'down' | 'left' | 'right' | 'up-left' | 'up-right' | 'down-left' | 'down-right';
 
-// Variable reference with optional tolerance for ranges
+// Enhanced variable reference system
 export interface VariableRef {
-	value: string; // e.g., "ant.r", "ant.g", "ant.b", "ant.direction"
+	value: string; // e.g., "ant.r", "cell.g", "up.b", "down-left.r", etc.
 	tolerance?: number; // for numeric values, tolerance for range matching
 }
 
 // Allow either direct values, variable references, or variable refs with tolerance
 export type ConditionValue = number | string | VariableRef;
+
+// Enhanced condition system with OR/AND groups
+export interface BaseCondition {
+	antState?: { [key: string]: ConditionValue };
+	cellState?: { [key: string]: ConditionValue };
+	surroundingCells?: { [key: string]: { [key: string]: ConditionValue } };
+}
+
+export interface ConditionGroup {
+	or?: BaseCondition[]; // Any condition in array must match
+	and?: BaseCondition[]; // All conditions in array must match
+}
+
+export type EnhancedCondition = BaseCondition | ConditionGroup;
 
 export interface Point {
 	x: number;
@@ -46,15 +61,12 @@ export interface CameraState {
 	zoom: number;
 }
 
+// Enhanced rule structure
 export interface AntRule {
-	condition: {
-		antState?: { [key: string]: ConditionValue };
-		cellState?: { [key: string]: ConditionValue };
-		surroundingCells?: { [key: string]: { [key: string]: ConditionValue } };
-	};
+	condition: EnhancedCondition;
 	action: {
-		setAntState?: Partial<AntState>;
-		setCellState?: Partial<CellState>;
+		setAntState?: { [key: string]: ConditionValue };
+		setCellState?: { [key: string]: ConditionValue };
 		turn?: Turn;
 		move?: boolean;
 	};
@@ -63,4 +75,11 @@ export interface AntRule {
 export interface SimulationSettings {
 	speed: number; // milliseconds between updates
 	isRunning: boolean;
+}
+
+// Context for variable resolution
+export interface VariableContext {
+	ant: AntState;
+	cell: CellState;
+	surrounding: { [key: string]: CellState };
 } 

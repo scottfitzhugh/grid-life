@@ -1,16 +1,30 @@
-# Ant Logic Language Reference
+# Enhanced Ant Logic Language Reference
 
-The Ant Logic Language is a JSON-based rule system that defines how ants behave in the Grid Life simulation. Each ant follows a set of rules that determine their actions based on current conditions.
+The Enhanced Ant Logic Language is a JSON-based rule system that defines how ants behave in the Grid Life simulation. Each ant follows a set of rules that determine their actions based on current conditions.
+
+## New Features
+
+### Enhanced Variable References
+- **Ant Variables**: `ant.r`, `ant.g`, `ant.b`, `ant.direction`
+- **Current Cell Variables**: `cell.r`, `cell.g`, `cell.b`  
+- **Surrounding Cell Variables**: `up.r`, `down.g`, `left.b`, `right.r`, `up-left.g`, etc.
+
+### OR/AND Condition Groups
+- **OR Groups**: Any condition in the group must match
+- **AND Groups**: All conditions in the group must match
+- Can be nested and combined for complex logic
+
+---
 
 ## Rule Structure
 
 Each rule consists of two parts:
-- **Condition**: Defines when the rule should trigger
+- **Condition**: Defines when the rule should trigger (now supports OR/AND groups)
 - **Action**: Defines what the ant should do when the condition is met
 
 ```json
 {
-  "condition": { /* condition criteria */ },
+  "condition": { /* enhanced condition with OR/AND support */ },
   "action": { /* actions to perform */ }
 }
 ```
@@ -23,212 +37,191 @@ Each rule consists of two parts:
 
 ---
 
-## Conditions
+## Enhanced Conditions
 
-Conditions define when a rule should trigger. Multiple condition types can be combined in a single rule.
-
-### `antState` - Check Ant Properties
-
-Check the ant's current state (direction and color values).
-
-**Properties:**
-- `direction`: "up", "down", "left", "right"
-- `r`, `g`, `b`: Color values (0-255)
-
-**Examples:**
+### Basic Conditions (Backward Compatible)
 
 ```json
-// Trigger when ant is facing up
 {
   "condition": {
-    "antState": { "direction": "up" }
-  }
-}
-
-// Trigger when ant is red (r=255)
-{
-  "condition": {
-    "antState": { "r": 255 }
-  }
-}
-
-// Trigger when ant is facing right and has specific colors
-{
-  "condition": {
-    "antState": { 
-      "direction": "right", 
-      "r": 255, 
-      "g": 0, 
-      "b": 0 
-    }
-  }
-}
-```
-
-### `cellState` - Check Current Cell Properties
-
-Check the color of the cell the ant is currently on.
-
-**Properties:**
-- `r`, `g`, `b`: Color values (0-255)
-
-**Examples:**
-
-```json
-// Trigger when on a light gray cell (default color)
-{
-  "condition": {
-    "cellState": { "r": 240, "g": 240, "b": 240 }
-  }
-}
-
-// Trigger when on a red cell
-{
-  "condition": {
-    "cellState": { "r": 255, "g": 0, "b": 0 }
-  }
-}
-
-// Trigger when cell's red component is 100
-{
-  "condition": {
-    "cellState": { "r": 100 }
-  }
-}
-```
-
-### `surroundingCells` - Check Neighboring Cells
-
-Check the colors of cells surrounding the ant.
-
-**Directions:**
-- `up`, `down`, `left`, `right`
-- `up-left`, `up-right`, `down-left`, `down-right`
-
-**Examples:**
-
-```json
-// Trigger when cell above is red
-{
-  "condition": {
+    "antState": { "direction": "up", "r": 255 },
+    "cellState": { "r": 240, "g": 240, "b": 240 },
     "surroundingCells": {
       "up": { "r": 255, "g": 0, "b": 0 }
     }
   }
 }
+```
 
-// Trigger when multiple surrounding cells have specific colors
+### OR Condition Groups
+
+Any condition in the `or` array must match:
+
+```json
 {
   "condition": {
-    "surroundingCells": {
-      "up": { "r": 255 },
-      "right": { "g": 255 },
-      "down": { "b": 255 }
-    }
+    "or": [
+      {
+        "cellState": { "r": 255, "g": 0, "b": 0 }
+      },
+      {
+        "cellState": { "r": 0, "g": 255, "b": 0 }
+      },
+      {
+        "cellState": { "r": 0, "g": 0, "b": 255 }
+      }
+    ]
   }
 }
+```
 
-// Check diagonal cells
+### AND Condition Groups
+
+All conditions in the `and` array must match:
+
+```json
 {
   "condition": {
-    "surroundingCells": {
-      "up-right": { "r": 100, "g": 100, "b": 100 }
-    }
+    "and": [
+      {
+        "antState": { "direction": "up" }
+      },
+      {
+        "cellState": { "r": 240, "g": 240, "b": 240 }
+      },
+      {
+        "surroundingCells": {
+          "up": { "r": 255, "g": 0, "b": 0 }
+        }
+      }
+    ]
+  }
+}
+```
+
+### Complex Nested Conditions
+
+You can combine OR and AND groups:
+
+```json
+{
+  "condition": {
+    "and": [
+      {
+        "antState": { "direction": "up" }
+      },
+      {
+        "or": [
+          {
+            "cellState": { "r": 255, "g": 0, "b": 0 }
+          },
+          {
+            "surroundingCells": {
+              "up": { "r": 255, "g": 0, "b": 0 }
+            }
+          }
+        ]
+      }
+    ]
   }
 }
 ```
 
 ---
 
-## Variable References
+## Enhanced Variable References
 
-Instead of hard-coded values, you can reference the ant's current properties using variable references in both **conditions** and **actions**.
+### Current Cell Variables
 
-### Basic Variable References
-
-**Available References:**
-- `"ant.r"` - Ant's red color component
-- `"ant.g"` - Ant's green color component  
-- `"ant.b"` - Ant's blue color component
-- `"ant.direction"` - Ant's current direction
-
-**Examples in Conditions:**
+Reference the cell the ant is currently on:
 
 ```json
-// Trigger when cell color matches ant's red component exactly
+// Trigger when ant's red matches current cell's red
 {
   "condition": {
-    "cellState": { "r": "ant.r" }
+    "antState": { "r": "cell.r" }
   }
 }
 
-// Multiple variable references in conditions
-{
-  "condition": {
-    "cellState": { 
-      "r": "ant.r", 
-      "g": "ant.g", 
-      "b": "ant.b" 
-    }
-  }
-}
-```
-
-**Examples in Actions:**
-
-```json
-// Paint cell with ant's current color
+// Action: Set cell to ant's color
 {
   "action": {
     "setCellState": { "r": "ant.r", "g": "ant.g", "b": "ant.b" }
   }
 }
 
-// Cycle ant colors (red->green, green->blue, blue->red)
+// Mix cell and ant variables
 {
   "action": {
     "setAntState": { 
-      "r": "ant.g", 
-      "g": "ant.b", 
-      "b": "ant.r" 
+      "r": "cell.g",  // Set ant red to cell's green
+      "g": "cell.b",  // Set ant green to cell's blue
+      "b": "cell.r"   // Set ant blue to cell's red
     }
   }
 }
 ```
+
+### Surrounding Cell Variables
+
+Reference neighboring cells directly:
+
+```json
+// Trigger when cell above has same red as ant
+{
+  "condition": {
+    "antState": { "r": "up.r" }
+  }
+}
+
+// Complex surrounding cell logic
+{
+  "condition": {
+    "or": [
+      { "antState": { "r": "up.r" } },
+      { "antState": { "g": "down.g" } },
+      { "antState": { "b": "left.b" } },
+      { "antState": { "r": "right.r" } }
+    ]
+  }
+}
+
+// Action using surrounding cell values
+{
+  "action": {
+    "setCellState": { 
+      "r": "up.r", 
+      "g": "down.g", 
+      "b": "left.b" 
+    }
+  }
+}
+```
+
+### All Available Cell References
+
+**Cardinal Directions:**
+- `up.r`, `up.g`, `up.b`
+- `down.r`, `down.g`, `down.b`
+- `left.r`, `left.g`, `left.b`
+- `right.r`, `right.g`, `right.b`
+
+**Diagonal Directions:**
+- `up-left.r`, `up-left.g`, `up-left.b`
+- `up-right.r`, `up-right.g`, `up-right.b`
+- `down-left.r`, `down-left.g`, `down-left.b`
+- `down-right.r`, `down-right.g`, `down-right.b`
 
 ### Variable References with Tolerance
 
-For numeric values, you can specify a tolerance range for fuzzy matching.
-
-**Syntax:**
-```json
-{
-  "property": {
-    "value": "ant.property",
-    "tolerance": number
-  }
-}
-```
-
-**Examples:**
+Works with all variable types:
 
 ```json
-// Trigger when cell red is within 50 of ant's red
+// Current cell with tolerance
 {
   "condition": {
-    "cellState": { 
-      "r": { "value": "ant.r", "tolerance": 50 }
-    }
-  }
-}
-
-// Multiple tolerances
-{
-  "condition": {
-    "cellState": {
-      "r": { "value": "ant.r", "tolerance": 25 },
-      "g": { "value": "ant.g", "tolerance": 10 },
-      "b": "ant.b"  // Exact match for blue
+    "antState": { 
+      "r": { "value": "cell.r", "tolerance": 50 }
     }
   }
 }
@@ -236,26 +229,8 @@ For numeric values, you can specify a tolerance range for fuzzy matching.
 // Surrounding cells with tolerance
 {
   "condition": {
-    "surroundingCells": {
-      "up": { 
-        "r": { "value": "ant.r", "tolerance": 30 }
-      }
-    }
-  }
-}
-```
-
-### Mixed Value Types
-
-You can mix direct values, variable references, and tolerances in the same condition.
-
-```json
-{
-  "condition": {
-    "cellState": {
-      "r": "ant.r",                              // Exact ant reference
-      "g": { "value": "ant.g", "tolerance": 50 }, // Ant reference with tolerance
-      "b": 100                                   // Direct value
+    "antState": { 
+      "g": { "value": "up.g", "tolerance": 25 }
     }
   }
 }
@@ -263,230 +238,19 @@ You can mix direct values, variable references, and tolerances in the same condi
 
 ---
 
-## Actions
+## Enhanced Example Rules
 
-Actions define what the ant should do when a condition is met. Multiple actions can be performed in sequence.
-
-### `setAntState` - Modify Ant Properties
-
-Change the ant's direction or color values. Supports both direct values and variable references.
-
-**Properties:**
-- `direction`: "up", "down", "left", "right"
-- `r`, `g`, `b`: Color values (0-255) or variable references
-
-**Examples:**
-
-```json
-// Change ant direction
-{
-  "action": {
-    "setAntState": { "direction": "right" }
-  }
-}
-
-// Change ant color to red
-{
-  "action": {
-    "setAntState": { "r": 255, "g": 0, "b": 0 }
-  }
-}
-
-// Copy another ant property (useful in complex logic)
-{
-  "action": {
-    "setAntState": { 
-      "r": "ant.g",  // Set red to current green value
-      "g": "ant.b",  // Set green to current blue value  
-      "b": "ant.r"   // Set blue to current red value
-    }
-  }
-}
-
-// Mix direct values and variable references
-{
-  "action": {
-    "setAntState": { 
-      "direction": "left", 
-      "r": "ant.r",  // Keep current red
-      "g": 150       // Set green to 150
-    }
-  }
-}
-```
-
-### `setCellState` - Modify Cell Properties
-
-Change the color of the cell the ant is currently on. Supports both direct values and variable references.
-
-**Properties:**
-- `r`, `g`, `b`: Color values (0-255) or variable references
-
-**Examples:**
-
-```json
-// Paint cell red
-{
-  "action": {
-    "setCellState": { "r": 255, "g": 0, "b": 0 }
-  }
-}
-
-// Paint cell with ant's current color
-{
-  "action": {
-    "setCellState": { "r": "ant.r", "g": "ant.g", "b": "ant.b" }
-  }
-}
-
-// Paint cell using ant's direction as a color component
-{
-  "action": {
-    "setCellState": { 
-      "r": "ant.r", 
-      "g": 128, 
-      "b": "ant.g" 
-    }
-  }
-}
-
-// Change only specific color components
-{
-  "action": {
-    "setCellState": { "r": "ant.r" }  // Set red to ant's red, keep g,b unchanged
-  }
-}
-```
-
-### `turn` - Relative Direction Changes
-
-Turn the ant relative to its current direction.
-
-**Options:**
-- `"left"`: Turn 90° counterclockwise
-- `"right"`: Turn 90° clockwise
-- `"reverse"`: Turn 180° around
-
-**Examples:**
-
-```json
-// Turn right
-{
-  "action": {
-    "turn": "right"
-  }
-}
-
-// Turn left
-{
-  "action": {
-    "turn": "left"
-  }
-}
-
-// Turn around
-{
-  "action": {
-    "turn": "reverse"
-  }
-}
-```
-
-### `move` - Move Forward
-
-Move the ant one step in its current direction.
-
-**Value:** `true` or `false`
-
-**Examples:**
-
-```json
-// Move forward
-{
-  "action": {
-    "move": true
-  }
-}
-
-// Combined with other actions
-{
-  "action": {
-    "turn": "right",
-    "move": true
-  }
-}
-```
-
----
-
-## Complete Example Rules
-
-### Classic Langton's Ant
+### Color-Gradient Following Ant
 
 ```json
 [
   {
     "condition": {
-      "cellState": { "r": 240, "g": 240, "b": 240 }
-    },
-    "action": {
-      "setCellState": { "r": 255, "g": 0, "b": 0 },
-      "turn": "right",
-      "move": true
-    }
-  },
-  {
-    "condition": {
-      "cellState": { "r": 255, "g": 0, "b": 0 }
-    },
-    "action": {
-      "setCellState": { "r": 240, "g": 240, "b": 240 },
-      "turn": "left",
-      "move": true
-    }
-  }
-]
-```
-
-### Color-Painting Ant
-
-```json
-[
-  {
-    "condition": {
-      "cellState": { "r": 240, "g": 240, "b": 240 }
-    },
-    "action": {
-      "setCellState": { "r": "ant.r", "g": "ant.g", "b": "ant.b" },
-      "move": true
-    }
-  },
-  {
-    "condition": {
-      "cellState": { "r": "ant.r", "g": "ant.g", "b": "ant.b" }
-    },
-    "action": {
-      "setAntState": { 
-        "r": "ant.g", 
-        "g": "ant.b", 
-        "b": "ant.r" 
-      },
-      "turn": "right",
-      "move": true
-    }
-  }
-]
-```
-
-### Gradient-Following Ant
-
-```json
-[
-  {
-    "condition": {
-      "surroundingCells": {
-        "up": { "r": { "value": "ant.r", "tolerance": 30 } }
-      }
+      "or": [
+        { "antState": { "r": { "value": "up.r", "tolerance": 30 } } },
+        { "antState": { "g": { "value": "up.g", "tolerance": 30 } } },
+        { "antState": { "b": { "value": "up.b", "tolerance": 30 } } }
+      ]
     },
     "action": {
       "setAntState": { "direction": "up" },
@@ -495,89 +259,21 @@ Move the ant one step in its current direction.
   },
   {
     "condition": {
-      "surroundingCells": {
-        "right": { "r": { "value": "ant.r", "tolerance": 30 } }
-      }
+      "or": [
+        { "antState": { "r": { "value": "right.r", "tolerance": 30 } } },
+        { "antState": { "g": { "value": "right.g", "tolerance": 30 } } },
+        { "antState": { "b": { "value": "right.b", "tolerance": 30 } } }
+      ]
     },
     "action": {
       "setAntState": { "direction": "right" },
       "move": true
     }
-  },
-  {
-    "condition": {},
-    "action": {
-      "turn": "right",
-      "move": true
-    }
   }
 ]
 ```
 
-### Bouncing Ant
-
-```json
-[
-  {
-    "condition": {
-      "surroundingCells": {
-        "up": { "r": 0, "g": 0, "b": 0 }
-      },
-      "antState": { "direction": "up" }
-    },
-    "action": {
-      "turn": "reverse",
-      "move": true
-    }
-  },
-  {
-    "condition": {
-      "surroundingCells": {
-        "down": { "r": 0, "g": 0, "b": 0 }
-      },
-      "antState": { "direction": "down" }
-    },
-    "action": {
-      "turn": "reverse",
-      "move": true
-    }
-  },
-  {
-    "condition": {},
-    "action": {
-      "move": true
-    }
-  }
-]
-```
-
----
-
-## Advanced Patterns
-
-### Multi-Condition Complex Rules
-
-```json
-[
-  {
-    "condition": {
-      "antState": { "direction": "up", "r": 255 },
-      "cellState": { "g": { "value": "ant.g", "tolerance": 25 } },
-      "surroundingCells": {
-        "left": { "b": 100 },
-        "right": { "b": 200 }
-      }
-    },
-    "action": {
-      "setAntState": { "direction": "right", "b": 128 },
-      "setCellState": { "r": 128, "g": 128, "b": 128 },
-      "move": true
-    }
-  }
-]
-```
-
-### Color-Swapping Ant
+### Cell-Color Mixing Ant
 
 ```json
 [
@@ -586,15 +282,27 @@ Move the ant one step in its current direction.
       "cellState": { "r": 240, "g": 240, "b": 240 }
     },
     "action": {
-      "setCellState": { "r": "ant.r", "g": "ant.g", "b": "ant.b" },
-      "setAntState": { "r": 100, "g": 150, "b": 200 },
+      "setCellState": { 
+        "r": "ant.r", 
+        "g": "up.g", 
+        "b": "left.b" 
+      },
       "move": true
     }
   },
   {
-    "condition": {},
+    "condition": {
+      "and": [
+        { "cellState": { "r": "ant.r" } },
+        { "cellState": { "g": "up.g" } }
+      ]
+    },
     "action": {
-      "setAntState": { "r": "ant.g", "g": "ant.b", "b": "ant.r" },
+      "setAntState": { 
+        "r": "cell.g", 
+        "g": "cell.b", 
+        "b": "cell.r" 
+      },
       "turn": "right",
       "move": true
     }
@@ -602,36 +310,59 @@ Move the ant one step in its current direction.
 ]
 ```
 
-### State Machine Ant
+### Smart Pathfinding Ant
 
 ```json
 [
   {
     "condition": {
-      "antState": { "r": 255, "g": 0, "b": 0 }
+      "and": [
+        {
+          "or": [
+            { "surroundingCells": { "up": { "r": 0, "g": 0, "b": 0 } } },
+            { "surroundingCells": { "up": { "r": 255, "g": 255, "b": 255 } } }
+          ]
+        },
+        { "antState": { "direction": "up" } }
+      ]
     },
     "action": {
-      "setAntState": { "r": 0, "g": 255, "b": 0 },
       "turn": "right",
       "move": true
     }
   },
   {
     "condition": {
-      "antState": { "r": 0, "g": 255, "b": 0 }
+      "or": [
+        { "cellState": { "r": "up.r", "g": "up.g", "b": "up.b" } },
+        { "cellState": { "r": "down.r", "g": "down.g", "b": "down.b" } }
+      ]
     },
     "action": {
-      "setAntState": { "r": 0, "g": 0, "b": 255 },
+      "setCellState": { "r": "ant.r", "g": "ant.g", "b": "ant.b" },
       "turn": "left",
       "move": true
     }
-  },
+  }
+]
+```
+
+### Pattern-Detection Ant
+
+```json
+[
   {
     "condition": {
-      "antState": { "r": 0, "g": 0, "b": 255 }
+      "and": [
+        { "cellState": { "r": "up.r" } },
+        { "cellState": { "g": "down.g" } },
+        { "cellState": { "b": "left.b" } },
+        { "antState": { "r": "right.r" } }
+      ]
     },
     "action": {
-      "setAntState": { "r": 255, "g": 0, "b": 0 },
+      "setCellState": { "r": 255, "g": 255, "b": 0 },
+      "setAntState": { "r": 255, "g": 255, "b": 0 },
       "turn": "reverse",
       "move": true
     }
@@ -641,47 +372,64 @@ Move the ant one step in its current direction.
 
 ---
 
-## Tips and Best Practices
+## Migration Guide
 
-### Rule Order Matters
-- Rules are evaluated top to bottom
-- Put more specific conditions first
-- Use a catch-all rule `{"condition": {}}` at the end for default behavior
+### Old Format (Still Supported)
+```json
+{
+  "condition": {
+    "antState": { "r": "ant.g" },
+    "cellState": { "r": 240, "g": 240, "b": 240 }
+  }
+}
+```
 
-### Performance Considerations
-- Simpler conditions evaluate faster
-- Avoid overly complex rule sets for better performance
-- Consider the number of ants when designing rules
+### New Enhanced Format
+```json
+{
+  "condition": {
+    "and": [
+      { "antState": { "r": "ant.g" } },
+      { "cellState": { "r": 240, "g": 240, "b": 240 } }
+    ]
+  }
+}
+```
 
-### Debugging Rules
-- Use simple rules first, then add complexity
-- Test one condition type at a time
-- Use the browser's developer console to check for rule parsing errors
+### Adding Cell Variables
+```json
+// Old: Only ant variables
+{ "action": { "setCellState": { "r": "ant.r" } } }
 
-### Creative Patterns
-- Combine multiple condition types for complex behaviors
-- Use tolerance values to create fuzzy logic
-- Create feedback loops where ants modify their environment and respond to changes
-- Use variable references in actions to create dynamic color patterns and state transfers
-- Mix variable references with direct values for flexible behaviors
-- Create color cycling, painting, and coordination patterns
+// New: Cell and surrounding variables
+{ "action": { "setCellState": { "r": "cell.g", "g": "up.b", "b": "down.r" } } }
+```
+
+---
+
+## Performance Notes
+
+- OR conditions short-circuit (stop at first match)
+- AND conditions short-circuit (stop at first failure)  
+- Cell variable resolution is optimized and cached per step
+- Complex nested conditions may impact performance with many ants
 
 ---
 
 ## Error Handling
 
 ### Common Errors
-- **Invalid JSON**: Check brackets, commas, and quotes
-- **Invalid directions**: Must be "up", "down", "left", "right"
-- **Invalid color values**: Must be integers 0-255
-- **Invalid variable references**: Must start with "ant."
-- **Invalid tolerance**: Must be a positive number
+- **Invalid variable reference**: `cell.invalid` → Use `cell.r`, `cell.g`, or `cell.b`
+- **Unknown direction**: `north.r` → Use `up.r`, `down.r`, `left.r`, `right.r`, etc.
+- **Mixed condition formats**: Don't mix basic and OR/AND in same condition
+- **Empty condition groups**: OR/AND arrays must not be empty
 
 ### Validation
 - Rules are validated when applied
-- Invalid rules will show error messages
-- Ants with invalid rules will not move
+- Invalid variable references default to 0
+- Invalid rules are skipped with warnings
+- Malformed JSON shows parse errors
 
 ---
 
-*For more examples and advanced techniques, see the Grid Life community wiki and example patterns.* 
+*The enhanced ant logic system provides powerful new capabilities while maintaining backward compatibility with existing rules.* 

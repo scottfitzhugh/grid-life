@@ -1,6 +1,7 @@
-import { AntState, Direction, CellState, AntRule, RGBColor, Turn, VariableRef, ConditionValue } from '../types/index.js';
+import { AntState, Direction, AntRule, RGBColor, Turn } from '../types/index.js';
 import { Grid } from './Grid.js';
 import { Camera } from './Camera.js';
+import { AntLogicEngine } from './AntLogicEngine.js';
 
 /**
  * Ant class represents individual ants with state and behavior rules
@@ -71,12 +72,7 @@ export class Ant {
 	 * Get ant rules as parsed JSON
 	 */
 	public getRules(): AntRule[] {
-		try {
-			return JSON.parse(this.state.rules);
-		} catch (e) {
-			console.warn(`Invalid JSON rules for ant ${this.state.id}:`, e);
-			return [];
-		}
+		return AntLogicEngine.parseRules(this.state.rules);
 	}
 
 	/**
@@ -87,174 +83,11 @@ export class Ant {
 	}
 
 	/**
-	 * Execute ant behavior based on rules
+	 * Execute ant behavior based on rules using enhanced logic engine
 	 */
 	public step(grid: Grid): void {
 		const rules = this.getRules();
-		const currentCell = grid.getCellState(this.state.x, this.state.y);
-		const surroundingCells = grid.getSurroundingCells(this.state.x, this.state.y);
-
-		for (const rule of rules) {
-			if (this.matchesCondition(rule.condition, currentCell, surroundingCells)) {
-				this.executeAction(rule.action, grid);
-				break; // Execute only first matching rule
-			}
-		}
-	}
-
-	/**
-	 * Check if current state matches rule condition
-	 */
-	private matchesCondition(
-		condition: AntRule['condition'],
-		currentCell: CellState,
-		surroundingCells: { [key: string]: CellState }
-	): boolean {
-		// Check ant state condition
-		if (condition.antState) {
-			for (const [key, expectedValue] of Object.entries(condition.antState)) {
-				const actualValue = this.state[key as keyof AntState];
-				if (!this.valuesMatch(actualValue, expectedValue)) {
-					return false;
-				}
-			}
-		}
-
-		// Check cell state condition
-		if (condition.cellState) {
-			for (const [key, expectedValue] of Object.entries(condition.cellState)) {
-				const actualValue = currentCell[key as keyof CellState];
-				if (!this.valuesMatch(actualValue, expectedValue)) {
-					return false;
-				}
-			}
-		}
-
-		// Check surrounding cells condition
-		if (condition.surroundingCells) {
-			for (const [direction, expectedState] of Object.entries(condition.surroundingCells)) {
-				const actualCell = surroundingCells[direction];
-				if (!actualCell) return false; // Direction must exist
-				
-				for (const [key, expectedValue] of Object.entries(expectedState)) {
-					const actualValue = actualCell[key as keyof CellState];
-					if (!this.valuesMatch(actualValue, expectedValue)) {
-						return false;
-					}
-				}
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Check if an actual value matches an expected condition value
-	 */
-	private valuesMatch(actualValue: any, expectedValue: ConditionValue): boolean {
-		// Handle direct value comparison
-		if (typeof expectedValue === 'number' || typeof expectedValue === 'string') {
-			// Check if it's a variable reference (starts with "ant.")
-			if (typeof expectedValue === 'string' && expectedValue.startsWith('ant.')) {
-				const antProperty = expectedValue.substring(4); // Remove "ant." prefix
-				const antValue = this.state[antProperty as keyof AntState];
-				return actualValue === antValue;
-			}
-			// Direct value comparison
-			return actualValue === expectedValue;
-		}
-
-		// Handle variable reference with tolerance
-		if (typeof expectedValue === 'object' && expectedValue.value) {
-			const ref = expectedValue as VariableRef;
-			if (ref.value.startsWith('ant.')) {
-				const antProperty = ref.value.substring(4); // Remove "ant." prefix
-				const antValue = this.state[antProperty as keyof AntState];
-				
-				if (typeof antValue === 'number' && typeof actualValue === 'number') {
-					if (ref.tolerance !== undefined) {
-						// Range comparison with tolerance
-						return Math.abs(actualValue - antValue) <= ref.tolerance;
-					} else {
-						// Exact comparison
-						return actualValue === antValue;
-					}
-				} else {
-					// Non-numeric comparison (exact match only)
-					return actualValue === antValue;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Execute rule action
-	 */
-	private executeAction(action: AntRule['action'], grid: Grid): void {
-		// Set ant state
-		if (action.setAntState) {
-			const resolvedState = this.resolveVariableReferences(action.setAntState);
-			this.setState(resolvedState);
-		}
-
-		// Turn relative to current direction
-		if (action.turn) {
-			this.turn(action.turn);
-		}
-
-		// Set cell state
-		if (action.setCellState) {
-			const resolvedCellState = this.resolveVariableReferences(action.setCellState);
-			grid.setCellState(this.state.x, this.state.y, resolvedCellState as CellState);
-		}
-
-		// Move ant
-		if (action.move) {
-			this.move();
-		}
-	}
-
-	/**
-	 * Resolve variable references in an object
-	 */
-	private resolveVariableReferences(obj: any): any {
-		const resolved: any = {};
-		
-		for (const [key, value] of Object.entries(obj)) {
-			if (typeof value === 'string' && value.startsWith('ant.')) {
-				// Variable reference - resolve to ant's property value
-				const antProperty = value.substring(4); // Remove "ant." prefix
-				const antValue = this.state[antProperty as keyof AntState];
-				resolved[key] = antValue;
-			} else {
-				// Direct value - use as-is
-				resolved[key] = value;
-			}
-		}
-		
-		return resolved;
-	}
-
-	/**
-	 * Move ant one step in its current direction
-	 */
-	private move(): void {
-		switch (this.state.direction) {
-			case 'up':
-				this.state.y--;
-				break;
-			case 'down':
-				this.state.y++;
-				break;
-			case 'left':
-				this.state.x--;
-				break;
-			case 'right':
-				this.state.x++;
-				break;
-		}
+		AntLogicEngine.executeRules(this.state, rules, grid);
 	}
 
 	/**
