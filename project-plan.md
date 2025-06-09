@@ -55,7 +55,10 @@ A TypeScript webapp featuring an infinite grid canvas where users can place and 
 │   └── styles/
 │       └── main.css
 ├── docs/
-│   └── ant-logic-language.md (Updated with enhanced features)
+│   ├── ant-logic-language.md    # Enhanced language reference
+│   ├── getting-started.md       # Installation and basic usage guide
+│   ├── architecture.md          # Technical architecture overview
+│   └── examples.md              # Collection of ant behavior examples
 ├── index.html
 ├── vite.config.ts
 ├── tsconfig.json
