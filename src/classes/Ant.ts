@@ -1,4 +1,4 @@
-import { AntState, Direction, CellState, AntRule, RGBColor, Turn } from '../types/index.js';
+import { AntState, Direction, CellState, AntRule, RGBColor, Turn, VariableRef, ConditionValue } from '../types/index.js';
 import { Grid } from './Grid.js';
 import { Camera } from './Camera.js';
 
@@ -112,8 +112,9 @@ export class Ant {
 	): boolean {
 		// Check ant state condition
 		if (condition.antState) {
-			for (const [key, value] of Object.entries(condition.antState)) {
-				if (key in this.state && this.state[key as keyof AntState] !== value) {
+			for (const [key, expectedValue] of Object.entries(condition.antState)) {
+				const actualValue = this.state[key as keyof AntState];
+				if (!this.valuesMatch(actualValue, expectedValue)) {
 					return false;
 				}
 			}
@@ -121,8 +122,9 @@ export class Ant {
 
 		// Check cell state condition
 		if (condition.cellState) {
-			for (const [key, value] of Object.entries(condition.cellState)) {
-				if (key in currentCell && currentCell[key as keyof CellState] !== value) {
+			for (const [key, expectedValue] of Object.entries(condition.cellState)) {
+				const actualValue = currentCell[key as keyof CellState];
+				if (!this.valuesMatch(actualValue, expectedValue)) {
 					return false;
 				}
 			}
@@ -132,17 +134,59 @@ export class Ant {
 		if (condition.surroundingCells) {
 			for (const [direction, expectedState] of Object.entries(condition.surroundingCells)) {
 				const actualCell = surroundingCells[direction];
-				if (actualCell) {
-					for (const [key, value] of Object.entries(expectedState)) {
-						if (key in actualCell && actualCell[key as keyof CellState] !== value) {
-							return false;
-						}
+				if (!actualCell) return false; // Direction must exist
+				
+				for (const [key, expectedValue] of Object.entries(expectedState)) {
+					const actualValue = actualCell[key as keyof CellState];
+					if (!this.valuesMatch(actualValue, expectedValue)) {
+						return false;
 					}
 				}
 			}
 		}
 
 		return true;
+	}
+
+	/**
+	 * Check if an actual value matches an expected condition value
+	 */
+	private valuesMatch(actualValue: any, expectedValue: ConditionValue): boolean {
+		// Handle direct value comparison
+		if (typeof expectedValue === 'number' || typeof expectedValue === 'string') {
+			// Check if it's a variable reference (starts with "ant.")
+			if (typeof expectedValue === 'string' && expectedValue.startsWith('ant.')) {
+				const antProperty = expectedValue.substring(4); // Remove "ant." prefix
+				const antValue = this.state[antProperty as keyof AntState];
+				return actualValue === antValue;
+			}
+			// Direct value comparison
+			return actualValue === expectedValue;
+		}
+
+		// Handle variable reference with tolerance
+		if (typeof expectedValue === 'object' && expectedValue.value) {
+			const ref = expectedValue as VariableRef;
+			if (ref.value.startsWith('ant.')) {
+				const antProperty = ref.value.substring(4); // Remove "ant." prefix
+				const antValue = this.state[antProperty as keyof AntState];
+				
+				if (typeof antValue === 'number' && typeof actualValue === 'number') {
+					if (ref.tolerance !== undefined) {
+						// Range comparison with tolerance
+						return Math.abs(actualValue - antValue) <= ref.tolerance;
+					} else {
+						// Exact comparison
+						return actualValue === antValue;
+					}
+				} else {
+					// Non-numeric comparison (exact match only)
+					return actualValue === antValue;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**

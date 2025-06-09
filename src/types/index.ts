@@ -5,6 +5,15 @@
 export type Direction = 'up' | 'down' | 'left' | 'right';
 export type Turn = 'left' | 'right' | 'reverse';
 
+// Variable reference with optional tolerance for ranges
+export interface VariableRef {
+	value: string; // e.g., "ant.r", "ant.g", "ant.b", "ant.direction"
+	tolerance?: number; // for numeric values, tolerance for range matching
+}
+
+// Allow either direct values, variable references, or variable refs with tolerance
+export type ConditionValue = number | string | VariableRef;
+
 export interface Point {
 	x: number;
 	y: number;
@@ -39,9 +48,9 @@ export interface CameraState {
 
 export interface AntRule {
 	condition: {
-		antState?: Partial<AntState>;
-		cellState?: Partial<CellState>;
-		surroundingCells?: { [key: string]: Partial<CellState> };
+		antState?: { [key: string]: ConditionValue };
+		cellState?: { [key: string]: ConditionValue };
+		surroundingCells?: { [key: string]: { [key: string]: ConditionValue } };
 	};
 	action: {
 		setAntState?: Partial<AntState>;

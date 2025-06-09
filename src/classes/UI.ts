@@ -103,15 +103,35 @@ export class UI {
   },
   {
     "condition": {
-      "cellState": { "r": 255, "g": 0, "b": 0 }
+      "cellState": { "r": "ant.r" }
     },
     "action": {
-      "setCellState": { "r": 240, "g": 240, "b": 240 },
+      "setAntState": { "g": 255 },
       "turn": "left",
+      "move": true
+    }
+  },
+  {
+    "condition": {
+      "surroundingCells": {
+        "up": { 
+          "r": { "value": "ant.r", "tolerance": 50 }
+        }
+      }
+    },
+    "action": {
+      "turn": "reverse",
       "move": true
     }
   }
 ]</pre>
+					<p><strong>Variable references:</strong></p>
+					<ul>
+						<li><strong>"ant.r", "ant.g", "ant.b"</strong> - Reference ant color values</li>
+						<li><strong>"ant.direction"</strong> - Reference ant direction</li>
+						<li><strong>Exact match:</strong> <code>"r": "ant.r"</code></li>
+						<li><strong>Range match:</strong> <code>"r": {"value": "ant.r", "tolerance": 50}</code></li>
+					</ul>
 					<p><strong>Turn options:</strong> "left", "right", "reverse"</p>
 				</div>
 			</div>
@@ -243,7 +263,7 @@ export class UI {
 				},
 				{
 					condition: {
-						cellState: { r: 255, g: 0, b: 0 }
+						cellState: { r: "ant.r" }
 					},
 					action: {
 						setCellState: { r: 240, g: 240, b: 240 },

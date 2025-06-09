@@ -1,126 +1,62 @@
 # Grid Life - Ant Simulation
 
-A TypeScript webapp featuring an infinite grid canvas where users can place and control programmable "ants" that follow custom JSON-based rules. Watch as simple rules create complex emergent behaviors!
+A sophisticated web-based ant simulation where you can program artificial ants using JSON rules to create complex emergent behaviors. Watch as your ants interact with an infinite grid, leaving trails of color and responding to their environment through your custom logic.
 
-![Grid Life Demo](https://img.shields.io/badge/demo-live-green)
-![TypeScript](https://img.shields.io/badge/language-TypeScript-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+## Features
 
-## 🎯 Features
+- **Infinite Grid**: Smooth panning and zooming across an unlimited canvas
+- **Programmable Ants**: Define ant behavior using a powerful JSON-based rule system
+- **Advanced Logic**: Support for variable references, tolerance-based matching, and complex conditions
+- **Visual Feedback**: Real-time color-coded visualization of ant states and grid cells
+- **Interactive Controls**: Click to place ants, select them to edit rules, and control simulation speed
+- **Modern UI**: Clean, responsive interface with floating control panels
 
-### Core Functionality
-- **Infinite Grid Canvas** - Smooth zoom and pan across an unlimited grid
-- **Interactive Ant Placement** - Click to place programmable ants
-- **Visual Rule Editor** - JSON-based rules system with live editing
-- **Real-time Simulation** - Configurable speed simulation engine
-- **Responsive Design** - Works on desktop and mobile devices
-
-### Ant Behavior System
-- **State-based Logic** - Ants have direction and RGB color states
-- **Environmental Awareness** - Ants can read cell colors and surrounding environment
-- **Rule-based Actions** - Modify ant state, change cell colors, or move based on conditions
-- **Emergent Complexity** - Simple rules create complex patterns and behaviors
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
-- Node.js (for TypeScript compilation)
-- Python 3 (for local server)
-- Modern web browser with ES2020 support
+
+- Python 3.x (for the development server)
+- Modern web browser (Chrome, Firefox, Safari, Edge)
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone the repository:
    ```bash
    git clone https://github.com/yourusername/grid-life.git
    cd grid-life
    ```
 
-2. **Install dependencies**
+2. Start the development server:
    ```bash
-   npm install
+   python server.py
    ```
 
-3. **Build the project**
-   ```bash
-   npm run build
-   ```
+3. Open your browser and navigate to `http://localhost:8000`
 
-4. **Start the server**
-   ```bash
-   python3 serve.py
-   ```
+### Basic Usage
 
-5. **Open in browser**
-   Navigate to `http://localhost:8000`
+1. **Navigate**: Use mouse wheel to zoom, right-click and drag to pan
+2. **Place Ants**: Left-click anywhere on the grid to place a new ant
+3. **Edit Rules**: Click on an ant to select it and edit its behavior rules
+4. **Control Simulation**: Use the floating control panel to play/pause and adjust speed
+5. **Program Behavior**: Write JSON rules to define how ants respond to their environment
 
-## 🎮 Controls
+## Ant Logic Language
 
-### Mouse Controls
-- **Left Click** - Place new ant or select existing ant
-- **Right Drag** - Pan the view around the grid
-- **Mouse Wheel** - Zoom in and out
+Ants are programmed using a JSON-based rule system that allows you to define complex behaviors. Each ant follows a set of rules that determine its actions based on current conditions.
 
-### Keyboard Shortcuts
-- **Space** - Play/Pause simulation
-- **Ctrl+S** - Execute single simulation step
-- **Escape** - Close rules editor panel
+### 📖 [Complete Language Reference](docs/ant-logic-language.md)
 
-### UI Controls
-- **Speed Slider** - Adjust simulation speed (50ms - 2000ms)
-- **Play/Pause Button** - Toggle simulation state
-- **Step Button** - Execute single simulation step
-- **Clear Button** - Remove all ants from grid
+The comprehensive documentation includes:
+- All condition types (`antState`, `cellState`, `surroundingCells`)
+- Variable references (`ant.r`, `ant.g`, `ant.b`, `ant.direction`)
+- Tolerance-based matching for fuzzy logic
+- Action types (`setAntState`, `setCellState`, `turn`, `move`)
+- Complete examples and advanced patterns
 
-## 🧬 Ant Rules System
+### Quick Example
 
-Ants follow JSON-based rules that define their behavior. Each rule has a `condition` and an `action`.
-
-### Basic Rule Structure
-```json
-[
-  {
-    "condition": {
-      "antState": { "direction": "up" },
-      "cellState": { "r": 240, "g": 240, "b": 240 },
-      "surroundingCells": {
-        "up": { "r": 100, "g": 100, "b": 100 }
-      }
-    },
-    "action": {
-      "setAntState": { "direction": "right", "r": 255 },
-      "setCellState": { "r": 200, "g": 50, "b": 50 },
-      "move": true
-    }
-  }
-]
-```
-
-### Rule Components
-
-#### Conditions
-- **`antState`** - Check ant's current direction and RGB values
-- **`cellState`** - Check the color of the cell the ant is on
-- **`surroundingCells`** - Check colors of neighboring cells (`up`, `down`, `left`, `right`, `up-left`, `up-right`, `down-left`, `down-right`)
-
-#### Actions
-- **`setAntState`** - Modify ant's direction or RGB color values
-- **`setCellState`** - Change the color of the current cell
-- **`move`** - Move ant forward in its current direction
-
-### Example Rules
-
-#### Simple Walker
-```json
-[
-  {
-    "condition": {},
-    "action": { "move": true }
-  }
-]
-```
-
-#### Color Trail
+Classic Langton's Ant behavior:
 ```json
 [
   {
@@ -129,151 +65,171 @@ Ants follow JSON-based rules that define their behavior. Each rule has a `condit
     },
     "action": {
       "setCellState": { "r": 255, "g": 0, "b": 0 },
+      "turn": "right",
+      "move": true
+    }
+  },
+  {
+    "condition": {
+      "cellState": { "r": 255, "g": 0, "b": 0 }
+    },
+    "action": {
+      "setCellState": { "r": 240, "g": 240, "b": 240 },
+      "turn": "left",
       "move": true
     }
   }
 ]
 ```
 
-#### Turning Behavior
+### Advanced Features
+
+- **Variable References**: Use `"ant.r"` to reference the ant's red color component
+- **Tolerance Matching**: `{"value": "ant.r", "tolerance": 50}` for fuzzy color matching
+- **Relative Turns**: `"turn": "left"` for direction changes relative to current heading
+- **Multi-Condition Rules**: Combine multiple condition types for complex behaviors
+
+## Controls
+
+### Mouse Controls
+- **Left Click**: Place a new ant
+- **Right Click + Drag**: Pan the camera
+- **Mouse Wheel**: Zoom in/out
+- **Click on Ant**: Select ant to edit its rules
+
+### Keyboard Shortcuts
+- **Space**: Play/Pause simulation
+- **R**: Reset simulation (clear all ants)
+- **+/-**: Increase/decrease simulation speed
+- **Arrow Keys**: Pan camera
+
+## Architecture
+
+The project is built with modern TypeScript and follows a modular architecture:
+
+### Core Classes
+
+- **`Grid`**: Manages the infinite sparse grid and cell states
+- **`Camera`**: Handles viewport transformations, zooming, and panning
+- **`Ant`**: Individual ant logic, rule processing, and rendering
+- **`Simulation`**: Game loop, ant management, and timing control
+- **`UI`**: User interface, control panels, and event handling
+
+### File Structure
+
+```
+grid-life/
+├── src/
+│   ├── classes/          # Core simulation classes
+│   ├── types/            # TypeScript type definitions
+│   ├── utils/            # Utility functions
+│   └── main.ts           # Application entry point
+├── docs/                 # Documentation
+├── dist/                 # Compiled JavaScript
+├── styles/               # CSS stylesheets
+├── index.html            # Main HTML file
+└── server.py             # Development server
+```
+
+## Development
+
+### Building
+
+The project uses TypeScript with ES2020 modules:
+
+```bash
+# Install TypeScript (if not already installed)
+npm install -g typescript
+
+# Compile TypeScript
+tsc
+
+# Or watch for changes
+tsc --watch
+```
+
+### Project Structure
+
+- Type definitions in `src/types/`
+- Core classes in `src/classes/`
+- Utility functions in `src/utils/`
+- Main application logic in `src/main.ts`
+
+### Key Components
+
+1. **Infinite Grid System**: Sparse storage with viewport culling for performance
+2. **Camera System**: Smooth zooming and panning with coordinate transformations
+3. **Rule Engine**: JSON-based programming language with variable references
+4. **Rendering Pipeline**: Efficient canvas drawing with selective updates
+5. **Event System**: Comprehensive input handling for mouse and keyboard
+
+## Advanced Examples
+
+### Color-Matching Ant
+```json
+[
+  {
+    "condition": {
+      "cellState": { "r": "ant.r" }
+    },
+    "action": {
+      "setAntState": { "g": 255 },
+      "turn": "right",
+      "move": true
+    }
+  }
+]
+```
+
+### Gradient-Following Ant
 ```json
 [
   {
     "condition": {
       "surroundingCells": {
-        "up": { "r": 255, "g": 0, "b": 0 }
+        "up": { "r": { "value": "ant.r", "tolerance": 30 } }
       }
     },
     "action": {
-      "setAntState": { "direction": "right" },
+      "setAntState": { "direction": "up" },
       "move": true
     }
   }
 ]
 ```
 
-## 🏗️ Architecture
+## Performance
 
-The project follows a modular TypeScript architecture:
+- **Infinite Grid**: Efficient sparse storage handles unlimited world size
+- **Viewport Culling**: Only renders visible cells and ants
+- **Optimized Rendering**: Selective canvas updates for smooth performance
+- **Rule Caching**: Compiled rule evaluation for fast execution
 
-```
-src/
-├── classes/
-│   ├── Grid.ts        # Infinite grid management
-│   ├── Camera.ts      # Viewport and transformations
-│   ├── Ant.ts         # Individual ant behavior
-│   ├── Simulation.ts  # Game loop and ant coordination
-│   └── UI.ts          # User interface controls
-├── types/
-│   └── index.ts       # TypeScript type definitions
-├── styles/
-│   └── main.css       # Application styling
-├── main.ts            # Application entry point
-└── index.html         # Main HTML file
-```
-
-### Key Classes
-
-- **Grid** - Manages infinite grid state and rendering with efficient viewport culling
-- **Camera** - Handles zoom, pan, and coordinate transformations
-- **Ant** - Represents individual ants with state and rule execution
-- **Simulation** - Coordinates the game loop and ant behavior
-- **UI** - Provides controls and rules editor interface
-
-## 🎨 Customization
-
-### Creating Custom Behaviors
-
-1. **Langton's Ant**
-   ```json
-   [
-     {
-       "condition": { "cellState": { "r": 240, "g": 240, "b": 240 } },
-       "action": {
-         "setCellState": { "r": 0, "g": 0, "b": 0 },
-         "setAntState": { "direction": "right" },
-         "move": true
-       }
-     },
-     {
-       "condition": { "cellState": { "r": 0, "g": 0, "b": 0 } },
-       "action": {
-         "setCellState": { "r": 240, "g": 240, "b": 240 },
-         "setAntState": { "direction": "left" },
-         "move": true
-       }
-     }
-   ]
-   ```
-
-2. **Rainbow Trail**
-   ```json
-   [
-     {
-       "condition": {},
-       "action": {
-         "setCellState": { "r": 255, "g": 100, "b": 200 },
-         "setAntState": { 
-           "r": 200, 
-           "g": 255, 
-           "b": 100 
-         },
-         "move": true
-       }
-     }
-   ]
-   ```
-
-## 🔧 Development
-
-### Project Scripts
-```bash
-npm run build    # Compile TypeScript
-npm run dev      # Watch mode compilation
-npm run serve    # Start HTTP server
-```
-
-### File Structure
-- Source files are in `src/`
-- Compiled JavaScript goes to `dist/`
-- Server serves from `src/` directory
-
-### Adding Features
-1. Modify TypeScript source files
-2. Run `npm run build` to compile
-3. Copy files to `src/` with `cp -r dist/* src/`
-4. Refresh browser to see changes
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
-### Code Style
-- Use tabs for indentation
+### Development Guidelines
+
 - Follow TypeScript best practices
-- Document all public methods
-- Write descriptive variable names
+- Maintain consistent code style (tabs for indentation)
+- Add comprehensive documentation
+- Test new features thoroughly
+- Update documentation as needed
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- Inspired by cellular automata and artificial life simulations
-- Built with modern web technologies for maximum compatibility
-- Designed for educational exploration of emergent behavior
-
-## 📊 Performance
-
-- Efficient viewport culling for infinite grid
-- Optimized rendering for smooth 60fps animation
-- Scales to hundreds of ants with complex rule sets
-- Memory-efficient sparse grid storage
+- Inspired by Langton's Ant and cellular automata
+- Built with modern web technologies
+- Designed for educational and creative exploration
 
 ---
 
