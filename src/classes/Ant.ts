@@ -195,7 +195,8 @@ export class Ant {
 	private executeAction(action: AntRule['action'], grid: Grid): void {
 		// Set ant state
 		if (action.setAntState) {
-			this.setState(action.setAntState);
+			const resolvedState = this.resolveVariableReferences(action.setAntState);
+			this.setState(resolvedState);
 		}
 
 		// Turn relative to current direction
@@ -205,13 +206,35 @@ export class Ant {
 
 		// Set cell state
 		if (action.setCellState) {
-			grid.setCellState(this.state.x, this.state.y, action.setCellState as CellState);
+			const resolvedCellState = this.resolveVariableReferences(action.setCellState);
+			grid.setCellState(this.state.x, this.state.y, resolvedCellState as CellState);
 		}
 
 		// Move ant
 		if (action.move) {
 			this.move();
 		}
+	}
+
+	/**
+	 * Resolve variable references in an object
+	 */
+	private resolveVariableReferences(obj: any): any {
+		const resolved: any = {};
+		
+		for (const [key, value] of Object.entries(obj)) {
+			if (typeof value === 'string' && value.startsWith('ant.')) {
+				// Variable reference - resolve to ant's property value
+				const antProperty = value.substring(4); // Remove "ant." prefix
+				const antValue = this.state[antProperty as keyof AntState];
+				resolved[key] = antValue;
+			} else {
+				// Direct value - use as-is
+				resolved[key] = value;
+			}
+		}
+		
+		return resolved;
 	}
 
 	/**

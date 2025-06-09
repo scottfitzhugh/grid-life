@@ -89,10 +89,11 @@ Classic Langton's Ant behavior:
 
 ### Advanced Features
 
-- **Variable References**: Use `"ant.r"` to reference the ant's red color component
+- **Variable References**: Use `"ant.r"` to reference the ant's red color component in both conditions and actions
 - **Tolerance Matching**: `{"value": "ant.r", "tolerance": 50}` for fuzzy color matching
 - **Relative Turns**: `"turn": "left"` for direction changes relative to current heading
 - **Multi-Condition Rules**: Combine multiple condition types for complex behaviors
+- **Dynamic Actions**: Paint cells with ant colors using `"setCellState": {"r": "ant.r"}`
 
 ## Controls
 

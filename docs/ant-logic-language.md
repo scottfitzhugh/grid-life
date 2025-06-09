@@ -142,7 +142,7 @@ Check the colors of cells surrounding the ant.
 
 ## Variable References
 
-Instead of hard-coded values, you can reference the ant's current properties using variable references.
+Instead of hard-coded values, you can reference the ant's current properties using variable references in both **conditions** and **actions**.
 
 ### Basic Variable References
 
@@ -152,7 +152,7 @@ Instead of hard-coded values, you can reference the ant's current properties usi
 - `"ant.b"` - Ant's blue color component
 - `"ant.direction"` - Ant's current direction
 
-**Examples:**
+**Examples in Conditions:**
 
 ```json
 // Trigger when cell color matches ant's red component exactly
@@ -162,20 +162,35 @@ Instead of hard-coded values, you can reference the ant's current properties usi
   }
 }
 
-// Trigger when ant is facing the same direction as stored in a cell
-{
-  "condition": {
-    "antState": { "direction": "ant.direction" }
-  }
-}
-
-// Multiple variable references
+// Multiple variable references in conditions
 {
   "condition": {
     "cellState": { 
       "r": "ant.r", 
       "g": "ant.g", 
       "b": "ant.b" 
+    }
+  }
+}
+```
+
+**Examples in Actions:**
+
+```json
+// Paint cell with ant's current color
+{
+  "action": {
+    "setCellState": { "r": "ant.r", "g": "ant.g", "b": "ant.b" }
+  }
+}
+
+// Cycle ant colors (red->green, green->blue, blue->red)
+{
+  "action": {
+    "setAntState": { 
+      "r": "ant.g", 
+      "g": "ant.b", 
+      "b": "ant.r" 
     }
   }
 }
@@ -254,11 +269,11 @@ Actions define what the ant should do when a condition is met. Multiple actions 
 
 ### `setAntState` - Modify Ant Properties
 
-Change the ant's direction or color values.
+Change the ant's direction or color values. Supports both direct values and variable references.
 
 **Properties:**
 - `direction`: "up", "down", "left", "right"
-- `r`, `g`, `b`: Color values (0-255)
+- `r`, `g`, `b`: Color values (0-255) or variable references
 
 **Examples:**
 
@@ -277,31 +292,35 @@ Change the ant's direction or color values.
   }
 }
 
-// Change multiple properties
+// Copy another ant property (useful in complex logic)
 {
   "action": {
     "setAntState": { 
-      "direction": "left", 
-      "r": 100, 
-      "g": 150 
+      "r": "ant.g",  // Set red to current green value
+      "g": "ant.b",  // Set green to current blue value  
+      "b": "ant.r"   // Set blue to current red value
     }
   }
 }
 
-// Increment color values (within 0-255 range)
+// Mix direct values and variable references
 {
   "action": {
-    "setAntState": { "r": 200, "g": 100 }
+    "setAntState": { 
+      "direction": "left", 
+      "r": "ant.r",  // Keep current red
+      "g": 150       // Set green to 150
+    }
   }
 }
 ```
 
 ### `setCellState` - Modify Cell Properties
 
-Change the color of the cell the ant is currently on.
+Change the color of the cell the ant is currently on. Supports both direct values and variable references.
 
 **Properties:**
-- `r`, `g`, `b`: Color values (0-255)
+- `r`, `g`, `b`: Color values (0-255) or variable references
 
 **Examples:**
 
@@ -313,17 +332,28 @@ Change the color of the cell the ant is currently on.
   }
 }
 
-// Paint cell with custom color
+// Paint cell with ant's current color
 {
   "action": {
-    "setCellState": { "r": 128, "g": 64, "b": 192 }
+    "setCellState": { "r": "ant.r", "g": "ant.g", "b": "ant.b" }
+  }
+}
+
+// Paint cell using ant's direction as a color component
+{
+  "action": {
+    "setCellState": { 
+      "r": "ant.r", 
+      "g": 128, 
+      "b": "ant.g" 
+    }
   }
 }
 
 // Change only specific color components
 {
   "action": {
-    "setCellState": { "r": 255 }  // Only change red, keep g,b unchanged
+    "setCellState": { "r": "ant.r" }  // Set red to ant's red, keep g,b unchanged
   }
 }
 ```
@@ -418,26 +448,30 @@ Move the ant one step in its current direction.
 ]
 ```
 
-### Color-Matching Ant
+### Color-Painting Ant
 
 ```json
 [
-  {
-    "condition": {
-      "cellState": { "r": "ant.r" }
-    },
-    "action": {
-      "setAntState": { "g": 255 },
-      "turn": "right",
-      "move": true
-    }
-  },
   {
     "condition": {
       "cellState": { "r": 240, "g": 240, "b": 240 }
     },
     "action": {
       "setCellState": { "r": "ant.r", "g": "ant.g", "b": "ant.b" },
+      "move": true
+    }
+  },
+  {
+    "condition": {
+      "cellState": { "r": "ant.r", "g": "ant.g", "b": "ant.b" }
+    },
+    "action": {
+      "setAntState": { 
+        "r": "ant.g", 
+        "g": "ant.b", 
+        "b": "ant.r" 
+      },
+      "turn": "right",
       "move": true
     }
   }
@@ -543,6 +577,31 @@ Move the ant one step in its current direction.
 ]
 ```
 
+### Color-Swapping Ant
+
+```json
+[
+  {
+    "condition": {
+      "cellState": { "r": 240, "g": 240, "b": 240 }
+    },
+    "action": {
+      "setCellState": { "r": "ant.r", "g": "ant.g", "b": "ant.b" },
+      "setAntState": { "r": 100, "g": 150, "b": 200 },
+      "move": true
+    }
+  },
+  {
+    "condition": {},
+    "action": {
+      "setAntState": { "r": "ant.g", "g": "ant.b", "b": "ant.r" },
+      "turn": "right",
+      "move": true
+    }
+  }
+]
+```
+
 ### State Machine Ant
 
 ```json
@@ -603,7 +662,9 @@ Move the ant one step in its current direction.
 - Combine multiple condition types for complex behaviors
 - Use tolerance values to create fuzzy logic
 - Create feedback loops where ants modify their environment and respond to changes
-- Use color gradients and variable references for sophisticated coordination
+- Use variable references in actions to create dynamic color patterns and state transfers
+- Mix variable references with direct values for flexible behaviors
+- Create color cycling, painting, and coordination patterns
 
 ---
 
