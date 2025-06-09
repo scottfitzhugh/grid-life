@@ -258,6 +258,108 @@ body {
 	overflow-x: auto;
 }
 
+.rules-help ul {
+	margin: 8px 0 0 0;
+	padding-left: 20px;
+	font-size: 12px;
+	color: #666;
+}
+
+.rules-help li {
+	margin-bottom: 4px;
+}
+
+/* Preset Section */
+.preset-section {
+	margin: 16px 0;
+	padding: 16px 0;
+	border-top: 1px solid #eee;
+	border-bottom: 1px solid #eee;
+}
+
+.preset-section p {
+	margin: 0 0 12px 0;
+	font-weight: 500;
+	color: #333;
+}
+
+.preset-buttons {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 8px;
+}
+
+.preset-btn {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: white;
+	border: none;
+	padding: 10px 12px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 500;
+	transition: all 0.2s ease;
+	text-align: left;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.preset-btn:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+	background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.preset-btn:active {
+	transform: translateY(0);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Different colors for different types of presets */
+.preset-btn[data-preset="langton"],
+.preset-btn[data-preset="rainbow"] {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.preset-btn[data-preset="colorMix"],
+.preset-btn[data-preset="wallFollower"] {
+	background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.preset-btn[data-preset="spiral"],
+.preset-btn[data-preset="heatSeeker"] {
+	background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.preset-btn[data-preset="gradient"],
+.preset-btn[data-preset="mathWave"] {
+	background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.preset-btn[data-preset="averager"],
+.preset-btn[data-preset="amplifier"] {
+	background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.preset-btn[data-preset="colorMix"]:hover,
+.preset-btn[data-preset="wallFollower"]:hover {
+	background: linear-gradient(135deg, #e081f9 0%, #f3455a 100%);
+}
+
+.preset-btn[data-preset="spiral"]:hover,
+.preset-btn[data-preset="heatSeeker"]:hover {
+	background: linear-gradient(135deg, #3d9afc 0%, #00e0fc 100%);
+}
+
+.preset-btn[data-preset="gradient"]:hover,
+.preset-btn[data-preset="mathWave"]:hover {
+	background: linear-gradient(135deg, #31d769 0%, #26e7c5 100%);
+}
+
+.preset-btn[data-preset="averager"]:hover,
+.preset-btn[data-preset="amplifier"]:hover {
+	background: linear-gradient(135deg, #f85f88 0%, #fccf2e 100%);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
 	.controls-panel {
@@ -284,6 +386,15 @@ body {
 	
 	.rules-panel {
 		right: 10px;
+	}
+	
+	.preset-buttons {
+		grid-template-columns: 1fr;
+	}
+	
+	.preset-btn {
+		font-size: 12px;
+		padding: 8px 10px;
 	}
 }
 
