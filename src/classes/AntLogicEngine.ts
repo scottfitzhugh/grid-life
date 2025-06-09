@@ -114,12 +114,20 @@ export class AntLogicEngine {
 	private static valuesMatch(actualValue: any, expectedValue: ConditionValue, context: VariableContext): boolean {
 		// Handle direct value comparison
 		if (typeof expectedValue === 'number' || typeof expectedValue === 'string') {
-			// Check if it's a variable reference
-			if (typeof expectedValue === 'string' && this.isVariableReference(expectedValue)) {
-				const resolvedValue = this.resolveVariableReference(expectedValue, context);
-				return actualValue === resolvedValue;
+			if (typeof expectedValue === 'string') {
+				if (this.isMathExpression(expectedValue)) {
+					// Mathematical expression - evaluate it
+					const resolvedValue = this.evaluateMathExpression(expectedValue, context);
+					return actualValue === resolvedValue;
+				} else if (this.isVariableReference(expectedValue)) {
+					// Variable reference - resolve it
+					const resolvedValue = this.resolveVariableReference(expectedValue, context);
+					return actualValue === resolvedValue;
+				}
+				// Direct string value comparison
+				return actualValue === expectedValue;
 			}
-			// Direct value comparison
+			// Direct numeric value comparison
 			return actualValue === expectedValue;
 		}
 
@@ -128,12 +136,20 @@ export class AntLogicEngine {
 		const ref = expectedValue as VariableRef;
 		let resolvedValue: any;
 		
-		// Check if value is a variable reference or a direct value
-		if (typeof ref.value === 'string' && this.isVariableReference(ref.value)) {
-			// Variable reference - resolve it
-			resolvedValue = this.resolveVariableReference(ref.value, context);
+		// Check if value is a variable reference, math expression, or direct value
+		if (typeof ref.value === 'string') {
+			if (this.isMathExpression(ref.value)) {
+				// Mathematical expression - evaluate it
+				resolvedValue = this.evaluateMathExpression(ref.value, context);
+			} else if (this.isVariableReference(ref.value)) {
+				// Variable reference - resolve it
+				resolvedValue = this.resolveVariableReference(ref.value, context);
+			} else {
+				// Direct string value
+				resolvedValue = ref.value;
+			}
 		} else {
-			// Direct value (number or string)
+			// Direct numeric value
 			resolvedValue = ref.value;
 		}
 		
@@ -163,6 +179,154 @@ export class AntLogicEngine {
 			value.startsWith('cell.') ||
 			this.isSurroundingCellReference(value)
 		);
+	}
+
+	/**
+	 * Check if string is a mathematical expression
+	 */
+	private static isMathExpression(value: string): boolean {
+		// Check if string contains math operators and variable references
+		const hasMathOperators = /[+\-*/%]/.test(value);
+		const hasVariables = /\b(ant|cell|up|down|left|right|up-left|up-right|down-left|down-right)\.[rgb]\b/.test(value);
+		return hasMathOperators && (hasVariables || /\d/.test(value));
+	}
+
+	/**
+	 * Evaluate mathematical expression with variable substitution
+	 */
+	private static evaluateMathExpression(expression: string, context: VariableContext): number {
+		try {
+			// Replace variable references with their actual values
+			let processedExpression = expression;
+			
+			// Find all variable references in the expression
+			const variablePattern = /\b(ant|cell|up|down|left|right|up-left|up-right|down-left|down-right)\.[rgb]\b/g;
+			const matches = processedExpression.match(variablePattern);
+			
+			if (matches) {
+				for (const match of matches) {
+					const value = this.resolveVariableReference(match, context);
+					if (typeof value === 'number') {
+						processedExpression = processedExpression.replace(new RegExp('\\b' + match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g'), value.toString());
+					} else {
+						console.warn(`Variable ${match} is not a number, cannot use in math expression`);
+						return 0;
+					}
+				}
+			}
+			
+			// Evaluate the mathematical expression safely
+			const result = this.evaluateSafeMath(processedExpression);
+			
+			// Clamp result to valid RGB range for color values
+			return Math.max(0, Math.min(255, Math.round(result)));
+		} catch (error) {
+			console.warn(`Error evaluating math expression "${expression}":`, error);
+			return 0;
+		}
+	}
+
+	/**
+	 * Safely evaluate a mathematical expression (basic operations only)
+	 */
+	private static evaluateSafeMath(expression: string): number {
+		// Remove whitespace
+		expression = expression.replace(/\s+/g, '');
+		
+		// Only allow numbers, basic operators, and parentheses
+		if (!/^[0-9+\-*/.()%]+$/.test(expression)) {
+			throw new Error('Invalid characters in math expression');
+		}
+		
+		// Simple recursive descent parser for basic math
+		return this.parseExpression(expression, 0).value;
+	}
+
+	/**
+	 * Parse mathematical expression (handles operator precedence)
+	 */
+	private static parseExpression(expr: string, pos: number): { value: number; pos: number } {
+		let result = this.parseTerm(expr, pos);
+		
+		while (result.pos < expr.length) {
+			const op = expr[result.pos];
+			if (op === '+' || op === '-') {
+				const right = this.parseTerm(expr, result.pos + 1);
+				result.value = op === '+' ? result.value + right.value : result.value - right.value;
+				result.pos = right.pos;
+			} else {
+				break;
+			}
+		}
+		
+		return result;
+	}
+
+	/**
+	 * Parse term (handles * / % operators)
+	 */
+	private static parseTerm(expr: string, pos: number): { value: number; pos: number } {
+		let result = this.parseFactor(expr, pos);
+		
+		while (result.pos < expr.length) {
+			const op = expr[result.pos];
+			if (op === '*' || op === '/' || op === '%') {
+				const right = this.parseFactor(expr, result.pos + 1);
+				if (op === '*') {
+					result.value = result.value * right.value;
+				} else if (op === '/') {
+					if (right.value === 0) throw new Error('Division by zero');
+					result.value = result.value / right.value;
+				} else { // %
+					if (right.value === 0) throw new Error('Modulo by zero');
+					result.value = result.value % right.value;
+				}
+				result.pos = right.pos;
+			} else {
+				break;
+			}
+		}
+		
+		return result;
+	}
+
+	/**
+	 * Parse factor (handles numbers and parentheses)
+	 */
+	private static parseFactor(expr: string, pos: number): { value: number; pos: number } {
+		// Skip whitespace
+		while (pos < expr.length && expr[pos] === ' ') pos++;
+		
+		if (pos >= expr.length) throw new Error('Unexpected end of expression');
+		
+		// Handle negative numbers
+		if (expr[pos] === '-') {
+			const result = this.parseFactor(expr, pos + 1);
+			return { value: -result.value, pos: result.pos };
+		}
+		
+		// Handle parentheses
+		if (expr[pos] === '(') {
+			const result = this.parseExpression(expr, pos + 1);
+			if (result.pos >= expr.length || expr[result.pos] !== ')') {
+				throw new Error('Missing closing parenthesis');
+			}
+			return { value: result.value, pos: result.pos + 1 };
+		}
+		
+		// Parse number
+		let numStr = '';
+		while (pos < expr.length && /[0-9.]/.test(expr[pos])) {
+			numStr += expr[pos];
+			pos++;
+		}
+		
+		if (numStr === '') throw new Error('Expected number');
+		
+		const value = parseFloat(numStr);
+		if (isNaN(value)) throw new Error('Invalid number');
+		
+		return { value, pos };
 	}
 
 	/**
@@ -247,18 +411,27 @@ export class AntLogicEngine {
 	}
 
 	/**
-	 * Resolve variable references in an object
+	 * Resolve variable references and mathematical expressions in an object
 	 */
 	private static resolveVariableReferences(obj: any, context: VariableContext): any {
 		const resolved: any = {};
 		
 		for (const [key, value] of Object.entries(obj)) {
-			if (typeof value === 'string' && this.isVariableReference(value)) {
-				// Variable reference - resolve to actual value
-				const resolvedValue = this.resolveVariableReference(value, context);
-				resolved[key] = resolvedValue;
+			if (typeof value === 'string') {
+				if (this.isMathExpression(value)) {
+					// Mathematical expression - evaluate it
+					const resolvedValue = this.evaluateMathExpression(value, context);
+					resolved[key] = resolvedValue;
+				} else if (this.isVariableReference(value)) {
+					// Variable reference - resolve to actual value
+					const resolvedValue = this.resolveVariableReference(value, context);
+					resolved[key] = resolvedValue;
+				} else {
+					// Direct string value - use as-is
+					resolved[key] = value;
+				}
 			} else {
-				// Direct value - use as-is
+				// Direct value (number, etc.) - use as-is
 				resolved[key] = value;
 			}
 		}

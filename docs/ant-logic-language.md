@@ -249,6 +249,88 @@ This last example matches when the cell's red value is between 98 and 158 (128 Â
 
 ---
 
+## Mathematical Expressions
+
+You can use mathematical expressions in both conditions and actions. Expressions can include variable references, numbers, and basic operators.
+
+### Supported Operators
+
+- **Addition**: `+`
+- **Subtraction**: `-`
+- **Multiplication**: `*`
+- **Division**: `/`
+- **Modulo**: `%`
+- **Parentheses**: `()` for grouping
+
+### Expression Examples
+
+```json
+// Set cell red to ant's red plus 10
+{
+  "action": {
+    "setCellState": { "r": "ant.r + 10" }
+  }
+}
+
+// Set ant color to mix of current cell and ant colors
+{
+  "action": {
+    "setAntState": { 
+      "r": "ant.r * cell.r / 255",
+      "g": "(ant.g + cell.g) / 2",
+      "b": "ant.b - 20"
+    }
+  }
+}
+
+// Condition using mathematical expression
+{
+  "condition": {
+    "cellState": { "r": "ant.r * 2" }
+  }
+}
+
+// Complex expression with surrounding cells
+{
+  "action": {
+    "setCellState": {
+      "r": "(up.r + down.r) / 2",
+      "g": "left.g * right.g / 255",
+      "b": "ant.b % 50 + 100"
+    }
+  }
+}
+
+// Expression with tolerance
+{
+  "condition": {
+    "cellState": {
+      "r": { 
+        "value": "ant.r + ant.g", 
+        "tolerance": 25 
+      }
+    }
+  }
+}
+```
+
+### Expression Rules
+
+1. **Automatic Clamping**: Results are automatically clamped to 0-255 range for RGB values
+2. **Integer Results**: Results are rounded to integers
+3. **Error Handling**: Invalid expressions default to 0
+4. **Division Safety**: Division by zero results in 0
+5. **Variable Types**: Only numeric variables (r, g, b) can be used in expressions
+
+### Operator Precedence
+
+Mathematical expressions follow standard operator precedence:
+1. **Parentheses** `()` - highest priority
+2. **Multiplication, Division, Modulo** `* / %`
+3. **Addition, Subtraction** `+ -` - lowest priority
+
+---
+
 ## Enhanced Example Rules
 
 ### Color-Gradient Following Ant

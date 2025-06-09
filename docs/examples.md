@@ -193,6 +193,125 @@ An ant that seeks out specific color ranges using numeric tolerance.
 
 **Behavior**: Seeks out cells with reddish-brown colors (red ~200, green ~100, blue ~50) with tolerance. When found, paints them green. When target colors are nearby, moves toward them and paints yellow trails.
 
+## Mathematical Expression Examples
+
+### Color Averaging Ant
+
+Uses mathematical expressions to average colors from surrounding cells.
+
+```json
+[
+  {
+    "action": {
+      "setCellState": {
+        "r": "(up.r + down.r + left.r + right.r) / 4",
+        "g": "(up.g + down.g + left.g + right.g) / 4", 
+        "b": "(up.b + down.b + left.b + right.b) / 4"
+      },
+      "move": true
+    }
+  }
+]
+```
+
+**Behavior**: Creates smooth color gradients by setting each cell to the average color of its four neighbors.
+
+### Brightness Amplifier
+
+Multiplies color intensity while maintaining color ratios.
+
+```json
+[
+  {
+    "condition": {
+      "cellState": {
+        "r": { "value": "ant.r / 2", "tolerance": 10 }
+      }
+    },
+    "action": {
+      "setCellState": {
+        "r": "cell.r * 2",
+        "g": "cell.g * 2",
+        "b": "cell.b * 2"
+      },
+      "move": true
+    }
+  },
+  {
+    "action": {
+      "setCellState": {
+        "r": "ant.r + 5",
+        "g": "ant.g + 5", 
+        "b": "ant.b + 5"
+      },
+      "turn": "right",
+      "move": true
+    }
+  }
+]
+```
+
+**Behavior**: When it finds cells with roughly half its color intensity, it doubles their brightness. Otherwise, it slightly brightens cells with its own color plus 5.
+
+### Sine Wave Painter
+
+Creates wave patterns using modulo operations.
+
+```json
+[
+  {
+    "action": {
+      "setCellState": {
+        "r": "ant.x % 50 * 5",
+        "g": "ant.y % 30 * 8",
+        "b": "(ant.x + ant.y) % 40 * 6"
+      },
+      "setAntState": {
+        "r": "(ant.r + 10) % 255",
+        "g": "(ant.g + 15) % 255",
+        "b": "(ant.b + 5) % 255"
+      },
+      "move": true
+    }
+  }
+]
+```
+
+**Behavior**: Creates colorful wave patterns based on position using modulo operations, while gradually cycling through colors.
+
+### Color Mixer
+
+Mixes ant color with surrounding colors using various mathematical operations.
+
+```json
+[
+  {
+    "condition": {
+      "cellState": { "r": 240, "g": 240, "b": 240 }
+    },
+    "action": {
+      "setCellState": {
+        "r": "ant.r * up.r / 255",
+        "g": "(ant.g + left.g) / 2",
+        "b": "right.b - ant.b / 4"
+      },
+      "setAntState": {
+        "r": "(ant.r + cell.r) % 255"
+      },
+      "move": true
+    }
+  },
+  {
+    "action": {
+      "turn": "left",
+      "move": true
+    }
+  }
+]
+```
+
+**Behavior**: On white cells, creates complex color mixing using multiplication, averaging, and subtraction. Updates its own color using modulo arithmetic.
+
 ## Complex Behavioral Patterns
 
 ### Wall-Following Ant

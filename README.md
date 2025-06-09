@@ -8,7 +8,7 @@ A sophisticated web-based ant simulation where you can program artificial ants u
 
 - **🌐 Infinite Grid**: Smooth panning and zooming across an unlimited canvas
 - **🤖 Programmable Ants**: Define ant behavior using a powerful JSON-based rule system
-- **🧠 Advanced Logic**: Support for variable references, tolerance-based matching, and OR/AND conditions
+- **🧠 Advanced Logic**: Support for variable references, mathematical expressions, tolerance-based matching, and OR/AND conditions
 - **🎨 Visual Feedback**: Real-time color-coded visualization of ant states and grid cells
 - **🎮 Interactive Controls**: Click to place ants, select them to edit rules, and control simulation speed
 - **💻 Modern UI**: Clean, responsive interface with floating control panels

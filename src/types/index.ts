@@ -8,7 +8,7 @@ export type SurroundingDirection = 'up' | 'down' | 'left' | 'right' | 'up-left' 
 
 // Enhanced variable reference system
 export interface VariableRef {
-	value: string | number; // e.g., "ant.r", "cell.g", "up.b", "down-left.r", etc., or direct numeric value
+	value: string | number; // e.g., "ant.r", "cell.g", "ant.r + 10", "ant.r * ant.g", etc., or direct numeric value
 	tolerance?: number; // for numeric values, tolerance for range matching
 }
 
