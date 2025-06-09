@@ -236,7 +236,8 @@ export class AntLogicEngine {
 		for (const [key, value] of Object.entries(obj)) {
 			if (typeof value === 'string' && this.isVariableReference(value)) {
 				// Variable reference - resolve to actual value
-				resolved[key] = this.resolveVariableReference(value, context);
+				const resolvedValue = this.resolveVariableReference(value, context);
+				resolved[key] = resolvedValue;
 			} else {
 				// Direct value - use as-is
 				resolved[key] = value;
@@ -261,7 +262,10 @@ export class AntLogicEngine {
 				// Clamp RGB values to 0-255
 				const numValue = Number(value);
 				if (!isNaN(numValue)) {
-					(ant as any)[key] = Math.max(0, Math.min(255, numValue));
+					const clampedValue = Math.max(0, Math.min(255, numValue));
+					(ant as any)[key] = clampedValue;
+				} else {
+					console.warn(`Invalid numeric value for ${key}: ${value}`);
 				}
 			} else if (key !== 'id' && key !== 'x' && key !== 'y' && key !== 'rules') {
 				// Allow other properties but skip core ones
@@ -343,6 +347,16 @@ export class AntLogicEngine {
 		} catch (e) {
 			console.warn('Invalid JSON in rules:', e);
 			return [];
+		}
+	}
+
+	/**
+	 * Enable or disable variable debugging
+	 */
+	public static setDebugVariables(enabled: boolean): void {
+		// Debug functionality can be enabled when needed for testing
+		if (enabled) {
+			console.log('Variable debugging enabled - for development use only');
 		}
 	}
 } 

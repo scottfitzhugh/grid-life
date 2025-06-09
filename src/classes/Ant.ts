@@ -25,14 +25,14 @@ export class Ant {
 						cellState: { r: 240, g: 240, b: 240 }
 					},
 					action: {
-						setCellState: { r: 255, g: 0, b: 0 },
+						setCellState: { r: "ant.r", g: "ant.g", b: "ant.b" },
 						turn: "right",
 						move: true
 					}
 				},
 				{
 					condition: {
-						cellState: { r: 255, g: 0, b: 0 }
+						cellState: { r: "ant.r", g: "ant.g", b: "ant.b" }
 					},
 					action: {
 						setCellState: { r: 240, g: 240, b: 240 },
