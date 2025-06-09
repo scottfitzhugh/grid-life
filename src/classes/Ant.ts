@@ -20,8 +20,22 @@ export class Ant {
 			b: 0,
 			rules: JSON.stringify([
 				{
-					condition: {},
+					condition: {
+						cellState: { r: 240, g: 240, b: 240 }
+					},
 					action: {
+						setCellState: { r: 255, g: 0, b: 0 },
+						setAntState: { direction: "right" },
+						move: true
+					}
+				},
+				{
+					condition: {
+						cellState: { r: 255, g: 0, b: 0 }
+					},
+					action: {
+						setCellState: { r: 240, g: 240, b: 240 },
+						setAntState: { direction: "left" },
 						move: true
 					}
 				}
@@ -45,6 +59,12 @@ export class Ant {
 		this.state.r = Math.max(0, Math.min(255, this.state.r));
 		this.state.g = Math.max(0, Math.min(255, this.state.g));
 		this.state.b = Math.max(0, Math.min(255, this.state.b));
+		
+		// Validate direction
+		if (newState.direction && !['up', 'down', 'left', 'right'].includes(newState.direction)) {
+			console.warn(`Invalid direction: ${newState.direction}. Keeping current direction: ${this.state.direction}`);
+			this.state.direction = this.state.direction; // Keep current direction
+		}
 	}
 
 	/**
@@ -248,6 +268,34 @@ export class Ant {
 	 */
 	private rgbToString(color: RGBColor): string {
 		return `rgb(${Math.floor(color.r)}, ${Math.floor(color.g)}, ${Math.floor(color.b)})`;
+	}
+
+	/**
+	 * Turn relative to current direction
+	 */
+	public turn(direction: 'left' | 'right'): void {
+		const directions: Direction[] = ['up', 'right', 'down', 'left'];
+		const currentIndex = directions.indexOf(this.state.direction);
+		
+		if (direction === 'right') {
+			this.state.direction = directions[(currentIndex + 1) % 4];
+		} else {
+			this.state.direction = directions[(currentIndex + 3) % 4]; // +3 is same as -1 with wrap
+		}
+	}
+
+	/**
+	 * Get direction after turning
+	 */
+	public getDirectionAfterTurn(turn: 'left' | 'right'): Direction {
+		const directions: Direction[] = ['up', 'right', 'down', 'left'];
+		const currentIndex = directions.indexOf(this.state.direction);
+		
+		if (turn === 'right') {
+			return directions[(currentIndex + 1) % 4];
+		} else {
+			return directions[(currentIndex + 3) % 4]; // +3 is same as -1 with wrap
+		}
 	}
 
 	/**

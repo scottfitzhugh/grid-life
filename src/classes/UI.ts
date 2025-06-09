@@ -89,16 +89,29 @@ export class UI {
 					<button id="reset-rules">Reset</button>
 				</div>
 				<div class="rules-help">
-					<p><strong>Example rule:</strong></p>
-					<pre>{
-  "condition": {
-    "cellState": { "r": 240, "g": 240, "b": 240 }
+					<p><strong>Example rules:</strong></p>
+					<pre>[
+  {
+    "condition": {
+      "cellState": { "r": 240, "g": 240, "b": 240 }
+    },
+    "action": {
+      "setCellState": { "r": 255, "g": 0, "b": 0 },
+      "setAntState": { "direction": "right" },
+      "move": true
+    }
   },
-  "action": {
-    "setCellState": { "r": 100, "g": 100, "b": 100 },
-    "move": true
+  {
+    "condition": {
+      "cellState": { "r": 255, "g": 0, "b": 0 }
+    },
+    "action": {
+      "setCellState": { "r": 240, "g": 240, "b": 240 },
+      "setAntState": { "direction": "left" },
+      "move": true
+    }
   }
-}</pre>
+]</pre>
 				</div>
 			</div>
 		`;
@@ -218,8 +231,22 @@ export class UI {
 		if (selectedAnt && this.rulesTextarea) {
 			const defaultRules = JSON.stringify([
 				{
-					condition: {},
+					condition: {
+						cellState: { r: 240, g: 240, b: 240 }
+					},
 					action: {
+						setCellState: { r: 255, g: 0, b: 0 },
+						setAntState: { direction: "right" },
+						move: true
+					}
+				},
+				{
+					condition: {
+						cellState: { r: 255, g: 0, b: 0 }
+					},
+					action: {
+						setCellState: { r: 240, g: 240, b: 240 },
+						setAntState: { direction: "left" },
 						move: true
 					}
 				}
