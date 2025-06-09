@@ -234,7 +234,18 @@ Works with all variable types:
     }
   }
 }
+
+// Direct numeric values with tolerance
+{
+  "condition": {
+    "cellState": {
+      "r": { "value": 128, "tolerance": 30 }
+    }
+  }
+}
 ```
+
+This last example matches when the cell's red value is between 98 and 158 (128 ± 30).
 
 ---
 

@@ -123,26 +123,33 @@ export class AntLogicEngine {
 			return actualValue === expectedValue;
 		}
 
-		// Handle variable reference with tolerance
-		if (typeof expectedValue === 'object' && expectedValue.value) {
-			const ref = expectedValue as VariableRef;
-			if (this.isVariableReference(ref.value)) {
-				const resolvedValue = this.resolveVariableReference(ref.value, context);
-				
-				if (typeof resolvedValue === 'number' && typeof actualValue === 'number') {
-					if (ref.tolerance !== undefined) {
-						// Range comparison with tolerance
-						return Math.abs(actualValue - resolvedValue) <= ref.tolerance;
-					} else {
-						// Exact comparison
-						return actualValue === resolvedValue;
-					}
-				} else {
-					// Non-numeric comparison (exact match only)
-					return actualValue === resolvedValue;
-				}
-			}
+			// Handle variable reference with tolerance
+	if (typeof expectedValue === 'object' && expectedValue.value !== undefined) {
+		const ref = expectedValue as VariableRef;
+		let resolvedValue: any;
+		
+		// Check if value is a variable reference or a direct value
+		if (typeof ref.value === 'string' && this.isVariableReference(ref.value)) {
+			// Variable reference - resolve it
+			resolvedValue = this.resolveVariableReference(ref.value, context);
+		} else {
+			// Direct value (number or string)
+			resolvedValue = ref.value;
 		}
+		
+		if (typeof resolvedValue === 'number' && typeof actualValue === 'number') {
+			if (ref.tolerance !== undefined) {
+				// Range comparison with tolerance
+				return Math.abs(actualValue - resolvedValue) <= ref.tolerance;
+			} else {
+				// Exact comparison
+				return actualValue === resolvedValue;
+			}
+		} else {
+			// Non-numeric comparison (exact match only)
+			return actualValue === resolvedValue;
+		}
+	}
 
 		return false;
 	}

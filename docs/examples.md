@@ -148,6 +148,51 @@ Creates a smooth color gradient based on position.
 
 **Behavior**: Changes color based on X coordinate position, creating zones of different colors with gradual transitions.
 
+### Target Seeker
+
+An ant that seeks out specific color ranges using numeric tolerance.
+
+```json
+[
+  {
+    "condition": {
+      "cellState": {
+        "r": { "value": 200, "tolerance": 55 },
+        "g": { "value": 100, "tolerance": 50 },
+        "b": { "value": 50, "tolerance": 25 }
+      }
+    },
+    "action": {
+      "setCellState": { "r": 0, "g": 255, "b": 0 },
+      "setAntState": { "r": 0, "g": 255, "b": 0 },
+      "move": true
+    }
+  },
+  {
+    "condition": {
+      "or": [
+        { "surroundingCells": { "up": { "r": { "value": 200, "tolerance": 55 } } } },
+        { "surroundingCells": { "down": { "r": { "value": 200, "tolerance": 55 } } } },
+        { "surroundingCells": { "left": { "r": { "value": 200, "tolerance": 55 } } } },
+        { "surroundingCells": { "right": { "r": { "value": 200, "tolerance": 55 } } } }
+      ]
+    },
+    "action": {
+      "setCellState": { "r": 255, "g": 255, "b": 0 },
+      "move": true
+    }
+  },
+  {
+    "action": {
+      "turn": "right",
+      "move": true
+    }
+  }
+]
+```
+
+**Behavior**: Seeks out cells with reddish-brown colors (red ~200, green ~100, blue ~50) with tolerance. When found, paints them green. When target colors are nearby, moves toward them and paints yellow trails.
+
 ## Complex Behavioral Patterns
 
 ### Wall-Following Ant
