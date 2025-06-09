@@ -379,3 +379,4 @@ interface GridState {
 - **Custom State**: Override spawned ant's initial color and properties
 - **Variable Support**: Use mathematical expressions for spawned ant properties
 - **Visual Builder**: GUI support for configuring spawn actions
+- **Tick Safety**: Newly spawned ants do not execute rules until the next simulation tick, preventing infinite loops

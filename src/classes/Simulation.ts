@@ -100,7 +100,10 @@ export class Simulation {
 	 * Execute one simulation step
 	 */
 	public step(): void {
-		// Create spawn callback that adds new ants to the simulation
+		// Collect newly spawned ants to add after current tick completes
+		const newlySpawnedAnts: Ant[] = [];
+
+		// Create spawn callback that collects new ants instead of adding them immediately
 		const spawnCallback = (x: number, y: number, state: Partial<AntState>) => {
 			const newAnt = new Ant(x, y);
 			
@@ -109,12 +112,19 @@ export class Simulation {
 				newAnt.setState(state);
 			}
 			
-			this.addAnt(newAnt);
+			// Add to spawn queue instead of immediately to simulation
+			newlySpawnedAnts.push(newAnt);
 		};
 
-		// Execute each ant's behavior
-		for (const ant of this.ants.values()) {
+		// Execute each existing ant's behavior (snapshot the current ants to avoid iterating over newly spawned ones)
+		const currentAnts = Array.from(this.ants.values());
+		for (const ant of currentAnts) {
 			ant.step(this.grid, spawnCallback);
+		}
+
+		// Add all newly spawned ants after all existing ants have completed their steps
+		for (const newAnt of newlySpawnedAnts) {
+			this.addAnt(newAnt);
 		}
 
 		// Notify observers
