@@ -25,7 +25,9 @@ A TypeScript webapp featuring an infinite grid canvas where users can place and 
    - Configurable simulation speed
 
 4. **UI Components**
-   - Floating panel for ant rules editor
+   - Floating panel for ant rules editor with JSON textarea
+   - **Visual Rule Builder**: GUI for constructing rules without writing JSON
+   - Preset buttons for common ant behaviors
    - Speed control slider
    - Play/pause simulation
 
@@ -317,4 +319,27 @@ interface GridState {
     }
   }
 ]
-``` 
+```
+
+## Major Updates
+
+### Visual Rule Builder (Latest Addition)
+- **Comprehensive GUI** for constructing ant rules without writing JSON
+- **Modal interface** with professional design and responsive layout
+- **Rule management**: Add/delete multiple rules with intuitive controls
+- **Condition builder**: Support for simple, AND group, and OR group conditions
+- **Action builder**: Checkboxes and form inputs for different action types
+- **Smart population**: Automatically loads existing JSON values when opened
+- **Full feature support**: Tolerance matching, mathematical expressions, surrounding cells
+- **Seamless integration**: Generates valid JSON compatible with existing rule system
+- **User-friendly workflow**: From visual form to JSON with one click
+
+### Mathematical Expressions
+- **Comprehensive parser** with proper operator precedence
+- **Safety features**: Auto-clamping, error handling, division by zero protection
+- **Examples**: `"ant.r + 10"`, `"(ant.r + cell.r) / 2"`, `"ant.g * 2 % 255"`
+
+### Preset System
+- **10 creative presets** with emojis and color-coded buttons
+- **Feature demonstrations**: Each preset showcases different capabilities
+- **Professional UI**: Grid layout with hover animations and gradients

@@ -87,6 +87,7 @@ export class UI {
 				<div class="rules-actions">
 					<button id="apply-rules">Apply</button>
 					<button id="reset-rules">Reset</button>
+					<button id="gui-builder">🔧 Visual Builder</button>
 				</div>
 				<div class="preset-section">
 					<p><strong>Load Preset Behaviors:</strong></p>
@@ -123,6 +124,41 @@ export class UI {
 
 		// Add preset button event listeners
 		this.setupPresetButtons();
+
+		// Create GUI builder modal
+		this.createGUIBuilder();
+	}
+
+	/**
+	 * Create GUI rule builder modal
+	 */
+	private createGUIBuilder(): void {
+		const builderModal = document.createElement('div');
+		builderModal.id = 'gui-builder-modal';
+		builderModal.className = 'modal hidden';
+		builderModal.innerHTML = `
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3>Visual Rule Builder</h3>
+					<button id="close-builder">×</button>
+				</div>
+				<div class="modal-body">
+					<div class="builder-section">
+						<h4>Rules</h4>
+						<div id="rules-list">
+							<!-- Rules will be added dynamically -->
+						</div>
+						<button id="add-rule" class="add-btn">+ Add Rule</button>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button id="builder-generate">Generate JSON</button>
+					<button id="builder-cancel">Cancel</button>
+				</div>
+			</div>
+		`;
+
+		document.body.appendChild(builderModal);
 	}
 
 	/**
@@ -187,6 +223,17 @@ export class UI {
 				this.resetRules();
 			});
 		}
+
+		// GUI builder button
+		const guiBuilderButton = document.getElementById('gui-builder');
+		if (guiBuilderButton) {
+			guiBuilderButton.addEventListener('click', () => {
+				this.showGUIBuilder();
+			});
+		}
+
+		// GUI builder modal events
+		this.setupGUIBuilderEvents();
 	}
 
 	/**
@@ -489,6 +536,807 @@ export class UI {
 			]
 		};
 	}
+
+	/**
+	 * Set up GUI builder event listeners
+	 */
+	private setupGUIBuilderEvents(): void {
+		// Close builder modal
+		const closeBuilderButton = document.getElementById('close-builder');
+		if (closeBuilderButton) {
+			closeBuilderButton.addEventListener('click', () => {
+				this.hideGUIBuilder();
+			});
+		}
+
+		// Cancel builder
+		const cancelButton = document.getElementById('builder-cancel');
+		if (cancelButton) {
+			cancelButton.addEventListener('click', () => {
+				this.hideGUIBuilder();
+			});
+		}
+
+		// Generate JSON
+		const generateButton = document.getElementById('builder-generate');
+		if (generateButton) {
+			generateButton.addEventListener('click', () => {
+				this.generateJSONFromBuilder();
+			});
+		}
+
+		// Add rule button
+		const addRuleButton = document.getElementById('add-rule');
+		if (addRuleButton) {
+			addRuleButton.addEventListener('click', () => {
+				this.addBuilderRule();
+			});
+		}
+	}
+
+	/**
+	 * Show GUI builder modal
+	 */
+	private showGUIBuilder(): void {
+		const modal = document.getElementById('gui-builder-modal');
+		if (modal) {
+			modal.classList.remove('hidden');
+			this.initializeBuilder();
+		}
+	}
+
+	/**
+	 * Hide GUI builder modal
+	 */
+	private hideGUIBuilder(): void {
+		const modal = document.getElementById('gui-builder-modal');
+		if (modal) {
+			modal.classList.add('hidden');
+		}
+	}
+
+	/**
+	 * Initialize builder with current rules if any
+	 */
+	private initializeBuilder(): void {
+		const rulesList = document.getElementById('rules-list');
+		if (rulesList) {
+			rulesList.innerHTML = '';
+			
+			// Try to parse existing rules from textarea
+			if (this.rulesTextarea && this.rulesTextarea.value.trim()) {
+				try {
+					const existingRules = JSON.parse(this.rulesTextarea.value);
+					if (Array.isArray(existingRules)) {
+						existingRules.forEach((rule, index) => {
+							this.addBuilderRule(rule, index);
+						});
+					} else {
+						this.addBuilderRule();
+					}
+				} catch (e) {
+					// If parsing fails, start with empty rule
+					this.addBuilderRule();
+				}
+			} else {
+				// Start with one empty rule
+				this.addBuilderRule();
+			}
+		}
+	}
+
+	/**
+	 * Add a rule to the builder
+	 */
+	private addBuilderRule(existingRule?: any, index?: number): void {
+		const rulesList = document.getElementById('rules-list');
+		if (!rulesList) return;
+
+		const ruleIndex = index !== undefined ? index : rulesList.children.length;
+		const ruleDiv = document.createElement('div');
+		ruleDiv.className = 'builder-rule';
+		ruleDiv.innerHTML = `
+			<div class="rule-header">
+				<h5>Rule ${ruleIndex + 1}</h5>
+				<button class="delete-rule" data-rule="${ruleIndex}">🗑️</button>
+			</div>
+			<div class="rule-content">
+				<div class="condition-section">
+					<h6>Condition (optional)</h6>
+					<select class="condition-type">
+						<option value="">No condition (always executes)</option>
+						<option value="simple">Simple condition</option>
+						<option value="and">AND group</option>
+						<option value="or">OR group</option>
+					</select>
+					<div class="condition-builder"></div>
+				</div>
+				<div class="action-section">
+					<h6>Action</h6>
+					<div class="action-builder">
+						<div class="action-group">
+							<label><input type="checkbox" class="action-setCellState"> Set cell color</label>
+							<div class="setCellState-inputs hidden">
+								<input type="text" placeholder="Red (0-255 or expression)" class="cell-r">
+								<input type="text" placeholder="Green (0-255 or expression)" class="cell-g">
+								<input type="text" placeholder="Blue (0-255 or expression)" class="cell-b">
+							</div>
+						</div>
+						<div class="action-group">
+							<label><input type="checkbox" class="action-setAntState"> Set ant color</label>
+							<div class="setAntState-inputs hidden">
+								<input type="text" placeholder="Red (0-255 or expression)" class="ant-r">
+								<input type="text" placeholder="Green (0-255 or expression)" class="ant-g">
+								<input type="text" placeholder="Blue (0-255 or expression)" class="ant-b">
+							</div>
+						</div>
+						<div class="action-group">
+							<label>Turn:</label>
+							<select class="action-turn">
+								<option value="">No turn</option>
+								<option value="left">Left</option>
+								<option value="right">Right</option>
+								<option value="reverse">Reverse</option>
+							</select>
+						</div>
+						<div class="action-group">
+							<label><input type="checkbox" class="action-move"> Move forward</label>
+						</div>
+					</div>
+				</div>
+			</div>
+		`;
+
+		rulesList.appendChild(ruleDiv);
+
+		// Set up event listeners for this rule
+		this.setupRuleEvents(ruleDiv, ruleIndex);
+
+		// If we have existing rule data, populate it
+		if (existingRule) {
+			this.populateRule(ruleDiv, existingRule);
+		}
+	}
+
+	/**
+	 * Set up event listeners for a specific rule
+	 */
+	private setupRuleEvents(ruleDiv: HTMLElement, _ruleIndex: number): void {
+		// Delete rule button
+		const deleteBtn = ruleDiv.querySelector('.delete-rule') as HTMLButtonElement;
+		if (deleteBtn) {
+			deleteBtn.addEventListener('click', () => {
+				ruleDiv.remove();
+				this.updateRuleNumbers();
+			});
+		}
+
+		// Condition type change
+		const conditionType = ruleDiv.querySelector('.condition-type') as HTMLSelectElement;
+		if (conditionType) {
+			conditionType.addEventListener('change', () => {
+				this.updateConditionBuilder(ruleDiv, conditionType.value);
+			});
+		}
+
+		// Action checkboxes
+		const actionCheckboxes = ruleDiv.querySelectorAll('input[type="checkbox"]');
+		actionCheckboxes.forEach(checkbox => {
+			checkbox.addEventListener('change', () => {
+				this.toggleActionInputs(checkbox as HTMLInputElement);
+			});
+		});
+	}
+
+	/**
+	 * Update rule numbers after deletion
+	 */
+	private updateRuleNumbers(): void {
+		const rulesList = document.getElementById('rules-list');
+		if (!rulesList) return;
+
+		const rules = rulesList.querySelectorAll('.builder-rule');
+		rules.forEach((rule, index) => {
+			const header = rule.querySelector('.rule-header h5');
+			if (header) {
+				header.textContent = `Rule ${index + 1}`;
+			}
+		});
+	}
+
+	/**
+	 * Update condition builder based on type
+	 */
+	private updateConditionBuilder(ruleDiv: HTMLElement, conditionType: string): void {
+		const conditionBuilder = ruleDiv.querySelector('.condition-builder') as HTMLElement;
+		if (!conditionBuilder) return;
+
+		conditionBuilder.innerHTML = '';
+
+		if (conditionType === 'simple') {
+			conditionBuilder.innerHTML = this.createSimpleConditionHTML();
+		} else if (conditionType === 'and' || conditionType === 'or') {
+			conditionBuilder.innerHTML = `
+				<div class="condition-group">
+					<div class="group-conditions"></div>
+					<button class="add-condition-btn">+ Add ${conditionType.toUpperCase()} condition</button>
+				</div>
+			`;
+			
+			// Add initial condition
+			const groupConditions = conditionBuilder.querySelector('.group-conditions');
+			const addBtn = conditionBuilder.querySelector('.add-condition-btn') as HTMLButtonElement;
+			
+			if (groupConditions && addBtn) {
+				this.addGroupCondition(groupConditions);
+				
+				addBtn.addEventListener('click', () => {
+					this.addGroupCondition(groupConditions);
+				});
+			}
+		}
+	}
+
+	/**
+	 * Create HTML for simple condition
+	 */
+	private createSimpleConditionHTML(): string {
+		return `
+			<div class="simple-condition">
+				<select class="condition-target">
+					<option value="antState">Ant state</option>
+					<option value="cellState">Current cell</option>
+					<option value="surroundingCells">Surrounding cell</option>
+				</select>
+				<select class="condition-property">
+					<option value="r">Red</option>
+					<option value="g">Green</option>
+					<option value="b">Blue</option>
+					<option value="direction">Direction</option>
+				</select>
+				<select class="condition-operator">
+					<option value="equals">Equals</option>
+					<option value="tolerance">Equals (with tolerance)</option>
+				</select>
+				<input type="text" class="condition-value" placeholder="Value or expression">
+				<input type="number" class="condition-tolerance hidden" placeholder="Tolerance" min="0" max="255">
+				<select class="surrounding-direction hidden">
+					<option value="up">Up</option>
+					<option value="down">Down</option>
+					<option value="left">Left</option>
+					<option value="right">Right</option>
+					<option value="up-left">Up-Left</option>
+					<option value="up-right">Up-Right</option>
+					<option value="down-left">Down-Left</option>
+					<option value="down-right">Down-Right</option>
+				</select>
+			</div>
+		`;
+	}
+
+	/**
+	 * Add condition to group
+	 */
+	private addGroupCondition(container: Element): void {
+		const conditionDiv = document.createElement('div');
+		conditionDiv.className = 'group-condition-item';
+		conditionDiv.innerHTML = `
+			${this.createSimpleConditionHTML()}
+			<button class="remove-condition-btn">Remove</button>
+		`;
+		
+		container.appendChild(conditionDiv);
+		
+		// Set up remove button
+		const removeBtn = conditionDiv.querySelector('.remove-condition-btn') as HTMLButtonElement;
+		if (removeBtn) {
+			removeBtn.addEventListener('click', () => {
+				conditionDiv.remove();
+			});
+		}
+		
+		// Set up condition change events
+		this.setupConditionEvents(conditionDiv);
+	}
+
+	/**
+	 * Set up condition event listeners
+	 */
+	private setupConditionEvents(conditionDiv: HTMLElement): void {
+		const target = conditionDiv.querySelector('.condition-target') as HTMLSelectElement;
+		const property = conditionDiv.querySelector('.condition-property') as HTMLSelectElement;
+		const operator = conditionDiv.querySelector('.condition-operator') as HTMLSelectElement;
+		const tolerance = conditionDiv.querySelector('.condition-tolerance') as HTMLInputElement;
+		const surroundingDir = conditionDiv.querySelector('.surrounding-direction') as HTMLSelectElement;
+
+		if (target) {
+			target.addEventListener('change', () => {
+				if (target.value === 'surroundingCells') {
+					surroundingDir?.classList.remove('hidden');
+				} else {
+					surroundingDir?.classList.add('hidden');
+				}
+				
+				// Update property options
+				if (target.value === 'antState') {
+					property.innerHTML = `
+						<option value="r">Red</option>
+						<option value="g">Green</option>
+						<option value="b">Blue</option>
+						<option value="direction">Direction</option>
+						<option value="x">X Position</option>
+						<option value="y">Y Position</option>
+					`;
+				} else {
+					property.innerHTML = `
+						<option value="r">Red</option>
+						<option value="g">Green</option>
+						<option value="b">Blue</option>
+					`;
+				}
+			});
+		}
+
+		if (operator) {
+			operator.addEventListener('change', () => {
+				if (operator.value === 'tolerance') {
+					tolerance?.classList.remove('hidden');
+				} else {
+					tolerance?.classList.add('hidden');
+				}
+			});
+		}
+	}
+
+	/**
+	 * Toggle action input visibility
+	 */
+	private toggleActionInputs(checkbox: HTMLInputElement): void {
+		const parent = checkbox.closest('.action-group');
+		if (!parent) return;
+
+		const inputs = parent.querySelector('.setCellState-inputs, .setAntState-inputs') as HTMLElement;
+		if (inputs) {
+			if (checkbox.checked) {
+				inputs.classList.remove('hidden');
+			} else {
+				inputs.classList.add('hidden');
+			}
+		}
+	}
+
+	/**
+	 * Populate rule with existing data
+	 */
+	private populateRule(ruleDiv: HTMLElement, ruleData: any): void {
+		if (!ruleData) return;
+
+		// Populate conditions
+		this.populateCondition(ruleDiv, ruleData.condition);
+
+		// Populate actions
+		this.populateActions(ruleDiv, ruleData.action);
+	}
+
+	/**
+	 * Populate condition section of a rule
+	 */
+	private populateCondition(ruleDiv: HTMLElement, conditionData: any): void {
+		const conditionType = ruleDiv.querySelector('.condition-type') as HTMLSelectElement;
+		if (!conditionType || !conditionData) return;
+
+		// Determine condition type
+		if (conditionData.and) {
+			conditionType.value = 'and';
+			this.updateConditionBuilder(ruleDiv, 'and');
+			this.populateGroupConditions(ruleDiv, conditionData.and);
+		} else if (conditionData.or) {
+			conditionType.value = 'or';
+			this.updateConditionBuilder(ruleDiv, 'or');
+			this.populateGroupConditions(ruleDiv, conditionData.or);
+		} else {
+			// Simple condition
+			conditionType.value = 'simple';
+			this.updateConditionBuilder(ruleDiv, 'simple');
+			this.populateSimpleCondition(ruleDiv, conditionData);
+		}
+	}
+
+	/**
+	 * Populate simple condition
+	 */
+	private populateSimpleCondition(ruleDiv: HTMLElement, conditionData: any): void {
+		// Try to find simple-condition either directly in ruleDiv or as a descendant
+		let simpleCondition = ruleDiv.querySelector('.simple-condition');
+		
+		// If ruleDiv itself contains the condition fields, use it directly
+		if (!simpleCondition && ruleDiv.querySelector('.condition-target')) {
+			simpleCondition = ruleDiv;
+		}
+		
+		if (!simpleCondition) return;
+
+		const target = simpleCondition.querySelector('.condition-target') as HTMLSelectElement;
+		const property = simpleCondition.querySelector('.condition-property') as HTMLSelectElement;
+		const operator = simpleCondition.querySelector('.condition-operator') as HTMLSelectElement;
+		const value = simpleCondition.querySelector('.condition-value') as HTMLInputElement;
+		const tolerance = simpleCondition.querySelector('.condition-tolerance') as HTMLInputElement;
+		const surroundingDirection = simpleCondition.querySelector('.surrounding-direction') as HTMLSelectElement;
+
+		// Find which property is being checked
+		let targetType = '';
+		let propertyName = '';
+		let propertyValue: any = '';
+		let toleranceValue = '';
+		let directionValue = '';
+
+		if (conditionData.antState) {
+			targetType = 'antState';
+			for (const [prop, val] of Object.entries(conditionData.antState)) {
+				if (prop.endsWith('Tolerance')) continue;
+				propertyName = prop;
+				propertyValue = val;
+				const toleranceProp = prop + 'Tolerance';
+				if (conditionData.antState[toleranceProp]) {
+					toleranceValue = conditionData.antState[toleranceProp];
+				}
+				break;
+			}
+		} else if (conditionData.cellState) {
+			targetType = 'cellState';
+			for (const [prop, val] of Object.entries(conditionData.cellState)) {
+				if (prop.endsWith('Tolerance')) continue;
+				propertyName = prop;
+				propertyValue = val;
+				const toleranceProp = prop + 'Tolerance';
+				if (conditionData.cellState[toleranceProp]) {
+					toleranceValue = conditionData.cellState[toleranceProp];
+				}
+				break;
+			}
+		} else if (conditionData.surroundingCells) {
+			targetType = 'surroundingCells';
+			for (const [dir, cellData] of Object.entries(conditionData.surroundingCells)) {
+				directionValue = dir;
+				for (const [prop, val] of Object.entries(cellData as any)) {
+					if (prop.endsWith('Tolerance')) continue;
+					propertyName = prop;
+					propertyValue = val;
+					const toleranceProp = prop + 'Tolerance';
+					if ((cellData as any)[toleranceProp]) {
+						toleranceValue = (cellData as any)[toleranceProp];
+					}
+					break;
+				}
+				break;
+			}
+		}
+
+		// Set form values
+		if (target) target.value = targetType;
+		if (property) property.value = propertyName;
+		if (value) value.value = this.formatValue(propertyValue);
+		
+		// Set operator and tolerance
+		if (toleranceValue && operator && tolerance) {
+			operator.value = 'tolerance';
+			tolerance.classList.remove('hidden');
+			tolerance.value = toleranceValue.toString();
+		} else if (operator) {
+			operator.value = 'equals';
+		}
+
+		// Set surrounding direction
+		if (directionValue && surroundingDirection) {
+			surroundingDirection.classList.remove('hidden');
+			surroundingDirection.value = directionValue;
+		}
+
+		// Trigger change events to update UI
+		if (target) target.dispatchEvent(new Event('change'));
+		if (operator) operator.dispatchEvent(new Event('change'));
+	}
+
+	/**
+	 * Populate group conditions (AND/OR)
+	 */
+	private populateGroupConditions(ruleDiv: HTMLElement, conditionsArray: any[]): void {
+		const conditionGroup = ruleDiv.querySelector('.condition-group');
+		if (!conditionGroup) return;
+
+		const groupConditions = conditionGroup.querySelector('.group-conditions');
+		if (!groupConditions) return;
+
+		// Clear existing conditions
+		groupConditions.innerHTML = '';
+
+		// Add each condition
+		conditionsArray.forEach(conditionData => {
+			this.addGroupCondition(groupConditions);
+			const lastCondition = groupConditions.lastElementChild as HTMLElement;
+			if (lastCondition) {
+				// Set up events first, then populate
+				this.setupConditionEvents(lastCondition);
+				this.populateSimpleCondition(lastCondition, conditionData);
+			}
+		});
+	}
+
+	/**
+	 * Populate actions section of a rule
+	 */
+	private populateActions(ruleDiv: HTMLElement, actionData: any): void {
+		if (!actionData) return;
+
+		// Set cell state action
+		if (actionData.setCellState) {
+			const setCellCheckbox = ruleDiv.querySelector('.action-setCellState') as HTMLInputElement;
+			if (setCellCheckbox) {
+				setCellCheckbox.checked = true;
+				this.toggleActionInputs(setCellCheckbox);
+
+				const cellR = ruleDiv.querySelector('.cell-r') as HTMLInputElement;
+				const cellG = ruleDiv.querySelector('.cell-g') as HTMLInputElement;
+				const cellB = ruleDiv.querySelector('.cell-b') as HTMLInputElement;
+
+				if (cellR && actionData.setCellState.r !== undefined) {
+					cellR.value = this.formatValue(actionData.setCellState.r);
+				}
+				if (cellG && actionData.setCellState.g !== undefined) {
+					cellG.value = this.formatValue(actionData.setCellState.g);
+				}
+				if (cellB && actionData.setCellState.b !== undefined) {
+					cellB.value = this.formatValue(actionData.setCellState.b);
+				}
+			}
+		}
+
+		// Set ant state action
+		if (actionData.setAntState) {
+			const setAntCheckbox = ruleDiv.querySelector('.action-setAntState') as HTMLInputElement;
+			if (setAntCheckbox) {
+				setAntCheckbox.checked = true;
+				this.toggleActionInputs(setAntCheckbox);
+
+				const antR = ruleDiv.querySelector('.ant-r') as HTMLInputElement;
+				const antG = ruleDiv.querySelector('.ant-g') as HTMLInputElement;
+				const antB = ruleDiv.querySelector('.ant-b') as HTMLInputElement;
+
+				if (antR && actionData.setAntState.r !== undefined) {
+					antR.value = this.formatValue(actionData.setAntState.r);
+				}
+				if (antG && actionData.setAntState.g !== undefined) {
+					antG.value = this.formatValue(actionData.setAntState.g);
+				}
+				if (antB && actionData.setAntState.b !== undefined) {
+					antB.value = this.formatValue(actionData.setAntState.b);
+				}
+			}
+		}
+
+		// Set turn action
+		if (actionData.turn) {
+			const turnSelect = ruleDiv.querySelector('.action-turn') as HTMLSelectElement;
+			if (turnSelect) {
+				turnSelect.value = actionData.turn;
+			}
+		}
+
+		// Set move action
+		if (actionData.move) {
+			const moveCheckbox = ruleDiv.querySelector('.action-move') as HTMLInputElement;
+			if (moveCheckbox) {
+				moveCheckbox.checked = true;
+			}
+		}
+	}
+
+	/**
+	 * Format value for display in form
+	 */
+	private formatValue(value: any): string {
+		if (typeof value === 'number') {
+			return value.toString();
+		}
+		return value || '';
+	}
+
+	/**
+	 * Generate JSON from builder
+	 */
+	private generateJSONFromBuilder(): void {
+		const rulesList = document.getElementById('rules-list');
+		if (!rulesList) return;
+
+		const rules: any[] = [];
+		const ruleElements = rulesList.querySelectorAll('.builder-rule');
+
+		ruleElements.forEach(ruleDiv => {
+			const rule = this.extractRuleFromElement(ruleDiv as HTMLElement);
+			if (rule) {
+				rules.push(rule);
+			}
+		});
+
+		if (this.rulesTextarea) {
+			this.rulesTextarea.value = JSON.stringify(rules, null, 2);
+			this.hideGUIBuilder();
+			this.showMessage('Rules generated successfully!', 'success');
+		}
+	}
+
+	/**
+	 * Extract rule data from DOM element
+	 */
+	private extractRuleFromElement(ruleDiv: HTMLElement): any {
+		const rule: any = { action: {} };
+
+		// Extract condition
+		const conditionType = ruleDiv.querySelector('.condition-type') as HTMLSelectElement;
+		if (conditionType && conditionType.value) {
+			if (conditionType.value === 'simple') {
+				rule.condition = this.extractSimpleCondition(ruleDiv);
+			} else if (conditionType.value === 'and' || conditionType.value === 'or') {
+				rule.condition = this.extractGroupCondition(ruleDiv, conditionType.value);
+			}
+		}
+
+		// Extract actions
+		const setCellCheckbox = ruleDiv.querySelector('.action-setCellState') as HTMLInputElement;
+		if (setCellCheckbox && setCellCheckbox.checked) {
+			const cellR = (ruleDiv.querySelector('.cell-r') as HTMLInputElement)?.value;
+			const cellG = (ruleDiv.querySelector('.cell-g') as HTMLInputElement)?.value;
+			const cellB = (ruleDiv.querySelector('.cell-b') as HTMLInputElement)?.value;
+			
+			rule.action.setCellState = {};
+			if (cellR) rule.action.setCellState.r = this.parseValue(cellR);
+			if (cellG) rule.action.setCellState.g = this.parseValue(cellG);
+			if (cellB) rule.action.setCellState.b = this.parseValue(cellB);
+		}
+
+		const setAntCheckbox = ruleDiv.querySelector('.action-setAntState') as HTMLInputElement;
+		if (setAntCheckbox && setAntCheckbox.checked) {
+			const antR = (ruleDiv.querySelector('.ant-r') as HTMLInputElement)?.value;
+			const antG = (ruleDiv.querySelector('.ant-g') as HTMLInputElement)?.value;
+			const antB = (ruleDiv.querySelector('.ant-b') as HTMLInputElement)?.value;
+			
+			rule.action.setAntState = {};
+			if (antR) rule.action.setAntState.r = this.parseValue(antR);
+			if (antG) rule.action.setAntState.g = this.parseValue(antG);
+			if (antB) rule.action.setAntState.b = this.parseValue(antB);
+		}
+
+		const turnSelect = ruleDiv.querySelector('.action-turn') as HTMLSelectElement;
+		if (turnSelect && turnSelect.value) {
+			rule.action.turn = turnSelect.value;
+		}
+
+		const moveCheckbox = ruleDiv.querySelector('.action-move') as HTMLInputElement;
+		if (moveCheckbox && moveCheckbox.checked) {
+			rule.action.move = true;
+		}
+
+		return rule;
+	}
+
+	/**
+	 * Extract simple condition from rule element
+	 */
+	private extractSimpleCondition(ruleDiv: HTMLElement): any {
+		const simpleCondition = ruleDiv.querySelector('.simple-condition');
+		if (!simpleCondition) return null;
+
+		const target = simpleCondition.querySelector('.condition-target') as HTMLSelectElement;
+		const property = simpleCondition.querySelector('.condition-property') as HTMLSelectElement;
+		const operator = simpleCondition.querySelector('.condition-operator') as HTMLSelectElement;
+		const value = simpleCondition.querySelector('.condition-value') as HTMLInputElement;
+		const tolerance = simpleCondition.querySelector('.condition-tolerance') as HTMLInputElement;
+		const surroundingDirection = simpleCondition.querySelector('.surrounding-direction') as HTMLSelectElement;
+
+		if (!target || !property || !value || !value.value.trim()) {
+			return null;
+		}
+
+		const condition: any = {};
+		
+		if (target.value === 'surroundingCells' && surroundingDirection && surroundingDirection.value) {
+			condition.surroundingCells = {
+				[surroundingDirection.value]: {
+					[property.value]: this.parseValue(value.value)
+				}
+			};
+			
+			if (operator.value === 'tolerance' && tolerance && tolerance.value) {
+				condition.surroundingCells[surroundingDirection.value][property.value + 'Tolerance'] = parseInt(tolerance.value);
+			}
+		} else {
+			condition[target.value] = {
+				[property.value]: this.parseValue(value.value)
+			};
+			
+			if (operator.value === 'tolerance' && tolerance && tolerance.value) {
+				condition[target.value][property.value + 'Tolerance'] = parseInt(tolerance.value);
+			}
+		}
+
+		return condition;
+	}
+
+	/**
+	 * Extract group condition (AND/OR) from rule element
+	 */
+	private extractGroupCondition(ruleDiv: HTMLElement, groupType: string): any {
+		const conditionGroup = ruleDiv.querySelector('.condition-group');
+		if (!conditionGroup) return null;
+
+		const conditionItems = conditionGroup.querySelectorAll('.group-condition-item');
+		const conditions: any[] = [];
+
+		conditionItems.forEach(item => {
+			const condition = this.extractSimpleConditionFromElement(item as HTMLElement);
+			if (condition) {
+				conditions.push(condition);
+			}
+		});
+
+		if (conditions.length === 0) return null;
+		if (conditions.length === 1) return conditions[0];
+
+		return { [groupType]: conditions };
+	}
+
+	/**
+	 * Extract simple condition from any element
+	 */
+	private extractSimpleConditionFromElement(element: HTMLElement): any {
+		const target = element.querySelector('.condition-target') as HTMLSelectElement;
+		const property = element.querySelector('.condition-property') as HTMLSelectElement;
+		const operator = element.querySelector('.condition-operator') as HTMLSelectElement;
+		const value = element.querySelector('.condition-value') as HTMLInputElement;
+		const tolerance = element.querySelector('.condition-tolerance') as HTMLInputElement;
+		const surroundingDirection = element.querySelector('.surrounding-direction') as HTMLSelectElement;
+
+		if (!target || !property || !value || !value.value.trim()) {
+			return null;
+		}
+
+		const condition: any = {};
+		
+		if (target.value === 'surroundingCells' && surroundingDirection && surroundingDirection.value) {
+			condition.surroundingCells = {
+				[surroundingDirection.value]: {
+					[property.value]: this.parseValue(value.value)
+				}
+			};
+			
+			if (operator.value === 'tolerance' && tolerance && tolerance.value) {
+				condition.surroundingCells[surroundingDirection.value][property.value + 'Tolerance'] = parseInt(tolerance.value);
+			}
+		} else {
+			condition[target.value] = {
+				[property.value]: this.parseValue(value.value)
+			};
+			
+			if (operator.value === 'tolerance' && tolerance && tolerance.value) {
+				condition[target.value][property.value + 'Tolerance'] = parseInt(tolerance.value);
+			}
+		}
+
+		return condition;
+	}
+
+	/**
+	 * Parse value (number or string expression)
+	 */
+	private parseValue(value: string): string | number {
+		const trimmed = value.trim();
+		if (/^\d+$/.test(trimmed)) {
+			return parseInt(trimmed);
+		}
+		return trimmed;
+	}
+
+
 
 	/**
 	 * Show rules panel for selected ant
