@@ -101,7 +101,7 @@ Once you're comfortable with the basics:
 1. **📖 [Learn the Ant Logic Language](ant-logic-language.md)** - Master the JSON rule system
 2. **🏗️ [Explore the Architecture](architecture.md)** - Understand how the system works
 3. **💡 [Try Advanced Examples](examples.md)** - See complex behaviors in action
-4. **🛠️ [Development Guide](../DEVELOPMENT.md)** - Start contributing to the project
+4. **🛠️ [Development Guide](development.md)** - Start contributing to the project
 
 ## Need Help?
 

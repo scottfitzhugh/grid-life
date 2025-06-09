@@ -33,7 +33,7 @@ Open `http://localhost:3000` and start placing ants with left-clicks!
 - **📚 [Ant Logic Language](docs/ant-logic-language.md)** - Complete reference for programming ant behavior
 - **🏗️ [Architecture Overview](docs/architecture.md)** - Technical structure and core classes
 - **💡 [Behavior Examples](docs/examples.md)** - Collection of ready-to-use ant behaviors
-- **🛠️ [Development Guide](DEVELOPMENT.md)** - Contributing and building the project
+- **🛠️ [Development Guide](docs/development.md)** - Contributing and building the project
 
 ## 🐜 Simple Example
 
@@ -74,7 +74,7 @@ This creates an ant that turns right on white cells and left on red cells, event
 
 ## 🤝 Contributing
 
-We welcome contributions! See our [Development Guide](DEVELOPMENT.md) for details on:
+We welcome contributions! See our [Development Guide](docs/development.md) for details on:
 
 - Setting up the development environment
 - Understanding the codebase architecture
