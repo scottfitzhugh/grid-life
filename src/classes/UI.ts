@@ -97,7 +97,7 @@ export class UI {
     },
     "action": {
       "setCellState": { "r": 255, "g": 0, "b": 0 },
-      "setAntState": { "direction": "right" },
+      "turn": "right",
       "move": true
     }
   },
@@ -107,11 +107,12 @@ export class UI {
     },
     "action": {
       "setCellState": { "r": 240, "g": 240, "b": 240 },
-      "setAntState": { "direction": "left" },
+      "turn": "left",
       "move": true
     }
   }
 ]</pre>
+					<p><strong>Turn options:</strong> "left", "right", "reverse"</p>
 				</div>
 			</div>
 		`;
@@ -236,7 +237,7 @@ export class UI {
 					},
 					action: {
 						setCellState: { r: 255, g: 0, b: 0 },
-						setAntState: { direction: "right" },
+						turn: "right",
 						move: true
 					}
 				},
@@ -246,7 +247,7 @@ export class UI {
 					},
 					action: {
 						setCellState: { r: 240, g: 240, b: 240 },
-						setAntState: { direction: "left" },
+						turn: "left",
 						move: true
 					}
 				}

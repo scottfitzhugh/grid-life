@@ -3,6 +3,7 @@
  */
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
+export type Turn = 'left' | 'right' | 'reverse';
 
 export interface Point {
 	x: number;
@@ -45,6 +46,7 @@ export interface AntRule {
 	action: {
 		setAntState?: Partial<AntState>;
 		setCellState?: Partial<CellState>;
+		turn?: Turn;
 		move?: boolean;
 	};
 }

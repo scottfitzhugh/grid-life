@@ -1,4 +1,4 @@
-import { AntState, Direction, CellState, AntRule, RGBColor } from '../types/index.js';
+import { AntState, Direction, CellState, AntRule, RGBColor, Turn } from '../types/index.js';
 import { Grid } from './Grid.js';
 import { Camera } from './Camera.js';
 
@@ -25,7 +25,7 @@ export class Ant {
 					},
 					action: {
 						setCellState: { r: 255, g: 0, b: 0 },
-						setAntState: { direction: "right" },
+						turn: "right",
 						move: true
 					}
 				},
@@ -35,7 +35,7 @@ export class Ant {
 					},
 					action: {
 						setCellState: { r: 240, g: 240, b: 240 },
-						setAntState: { direction: "left" },
+						turn: "left",
 						move: true
 					}
 				}
@@ -152,6 +152,11 @@ export class Ant {
 		// Set ant state
 		if (action.setAntState) {
 			this.setState(action.setAntState);
+		}
+
+		// Turn relative to current direction
+		if (action.turn) {
+			this.turn(action.turn);
 		}
 
 		// Set cell state
@@ -273,28 +278,37 @@ export class Ant {
 	/**
 	 * Turn relative to current direction
 	 */
-	public turn(direction: 'left' | 'right'): void {
+	public turn(turn: Turn): void {
 		const directions: Direction[] = ['up', 'right', 'down', 'left'];
 		const currentIndex = directions.indexOf(this.state.direction);
 		
-		if (direction === 'right') {
-			this.state.direction = directions[(currentIndex + 1) % 4];
-		} else {
-			this.state.direction = directions[(currentIndex + 3) % 4]; // +3 is same as -1 with wrap
+		switch (turn) {
+			case 'right':
+				this.state.direction = directions[(currentIndex + 1) % 4];
+				break;
+			case 'left':
+				this.state.direction = directions[(currentIndex + 3) % 4]; // +3 is same as -1 with wrap
+				break;
+			case 'reverse':
+				this.state.direction = directions[(currentIndex + 2) % 4]; // Turn around 180 degrees
+				break;
 		}
 	}
 
 	/**
 	 * Get direction after turning
 	 */
-	public getDirectionAfterTurn(turn: 'left' | 'right'): Direction {
+	public getDirectionAfterTurn(turn: Turn): Direction {
 		const directions: Direction[] = ['up', 'right', 'down', 'left'];
 		const currentIndex = directions.indexOf(this.state.direction);
 		
-		if (turn === 'right') {
-			return directions[(currentIndex + 1) % 4];
-		} else {
-			return directions[(currentIndex + 3) % 4]; // +3 is same as -1 with wrap
+		switch (turn) {
+			case 'right':
+				return directions[(currentIndex + 1) % 4];
+			case 'left':
+				return directions[(currentIndex + 3) % 4]; // +3 is same as -1 with wrap
+			case 'reverse':
+				return directions[(currentIndex + 2) % 4]; // Turn around 180 degrees
 		}
 	}
 
