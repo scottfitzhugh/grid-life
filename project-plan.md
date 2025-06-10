@@ -62,6 +62,10 @@ A TypeScript webapp featuring an infinite grid canvas where users can place and 
 │   ├── architecture.md          # Technical architecture overview
 │   ├── examples.md              # Collection of ant behavior examples
 │   └── development.md           # Development workflow and contributing guide
+├── .github/
+│   └── workflows/
+│       ├── build.yml            # Build and test workflow
+│       └── deploy.yml           # GitHub Pages deployment workflow
 ├── index.html
 ├── vite.config.ts
 ├── tsconfig.json
@@ -233,6 +237,8 @@ interface GridState {
 - ✅ **NEW**: Optimized AntLogicEngine for better performance
 - ✅ **NEW**: Comprehensive variable system (ant, cell, surrounding cells)
 - ✅ **NEW**: OR/AND condition groups with nesting support
+- ✅ **NEW**: Ant spawning system with directional spawning and state inheritance
+- ✅ **NEW**: GitHub Actions CI/CD with GitHub Pages deployment
 - All major features implemented and working
 - Enhanced rule system provides powerful new capabilities
 - Backward compatible with existing rule formats
@@ -254,13 +260,16 @@ interface GridState {
 - **Build Workflow**: Runs on every push/PR, tests on Node.js 18.x and 20.x
 - **Deploy Workflow**: Automatically deploys to GitHub Pages on main branch push
 - **Artifacts**: Build outputs are stored for 30 days for download
+- **GitHub Pages Fix**: Vite automatically detects repository name and sets correct base path
 
 #### GitHub Pages Setup
 To enable GitHub Pages deployment:
 1. Go to repository Settings → Pages
 2. Set Source to "GitHub Actions"
 3. Push to main branch to trigger deployment
-4. Access your live app at `https://username.github.io/grid-life`
+4. Access your live app at `https://username.github.io/repository-name`
+
+**Note**: The build system automatically handles GitHub Pages base path configuration, so assets will load correctly regardless of your repository name.
 
 ### Keyboard Shortcuts
 - **Space**: Play/Pause simulation
