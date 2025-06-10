@@ -2,7 +2,7 @@
 
 A sophisticated web-based ant simulation where you can program artificial ants using JSON rules to create complex emergent behaviors. Watch as your ants interact with an infinite grid, leaving trails of color and responding to their environment through your custom logic.
 
-![Grid Life Demo](https://via.placeholder.com/800x400/2d3748/ffffff?text=Grid+Life+Demo)
+![Grid Life Demo](https://scottfitzhugh.github.io/grid-life/)
 
 ## ✨ Features
 
